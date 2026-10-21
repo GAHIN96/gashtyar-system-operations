@@ -230,7 +230,7 @@ export function AuthModal({ onAuthenticated, tabToken }: AuthModalProps) {
                     className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 text-lg tracking-widest font-mono text-center font-bold text-slate-900 focus:outline-hidden focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all"
                   />
                   <p className="text-[11px] text-slate-500 mt-2 text-center">
-                    A fresh, unique code was sent to <strong className="text-slate-800">it@gate2hotels.co</strong>. Check your inbox to continue.
+                    A fresh, unique code was sent to <strong className="text-slate-800">{email}</strong>. Check your inbox to continue.
                   </p>
                 </div>
               </div>

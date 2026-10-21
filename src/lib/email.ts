@@ -171,33 +171,18 @@ export function buildHtmlTemplate(params: {
 
 /**
  * Send Transactional Verification Email
- * Strictly routes verification code to Admin (it@gate2hotels.co)
+ * Sends each unique code directly to the user's own email
  */
 export async function sendVerificationEmail(email: string, code: string, name: string) {
   const config = await getSmtpConfig();
   const appBaseUrl = process.env.APP_BASE_URL || 'https://monitor.gashtyartravel.com';
   const actionUrl = `${appBaseUrl}/?email=${encodeURIComponent(email)}`;
+  const recipientEmail = email.trim().toLowerCase();
 
-  await initDb();
-  const db = getDb();
-  const adminRes = await db.execute(`SELECT email FROM users WHERE role = 'ADMIN' AND status = 'ACTIVE' LIMIT 1`);
-  const adminEmail = (adminRes.rows[0]?.email as string) || 'it@gate2hotels.co';
-
-  const isForAdmin = email.trim().toLowerCase() === adminEmail.trim().toLowerCase();
-
-  const title = isForAdmin
-    ? 'Gashtyar IT Operations — Security Verification Code'
-    : `Access Request Code for ${name} (${email})`;
-
+  const title = 'Gashtyar IT Operations — Security Verification Code';
   const preheader = `Your single-use access code is ${code}`;
-
-  const summary = isForAdmin
-    ? `Hello ${name || 'IT Manager'},\n\nA fresh, unique 6-digit verification code was requested for your IT Manager administrative session.\n\nEnter this code into the portal to open the system securely.`
-    : `Hello IT Manager,\n\nA login verification code was requested by ${name} (${email}) to open the system.\n\nSince outbound delivery is restricted exclusively to the Administrator, their single-use 6-digit code has been delivered here for your approval: ${code}`;
-
-  const subject = isForAdmin
-    ? `[Gashtyar IT] ${code} is your login verification code`
-    : `[Gashtyar IT] Access Code for ${name} (${email}): ${code}`;
+  const summary = `Hello ${name || 'Colleague'},\n\nA fresh, unique 6-digit verification code was requested for your account to open the Gashtyar IT Operations portal.\n\nEnter this code into the portal to complete your secure sign-in.`;
+  const subject = `[Gashtyar IT] ${code} is your login verification code`;
 
   const html = buildHtmlTemplate({
     title,
@@ -215,17 +200,42 @@ export async function sendVerificationEmail(email: string, code: string, name: s
     try {
       await transporter.sendMail({
         from: config.from,
-        to: adminEmail,
+        to: recipientEmail,
         subject,
         html,
-        text: `${summary}\n\nUnique Verification Code: ${code}\n\nValid for 10 minutes.`,
+        text: `${summary}\n\nYour Unique Verification Code: ${code}\n\nValid for 10 minutes. Enter it at: ${actionUrl}`,
       });
-      console.log(`[EMAIL] Verification code dispatched strictly to Admin (${adminEmail}) for user (${email})`);
-    } catch (err) {
-      console.error(`[EMAIL ERROR] Failed to send verification email to ${adminEmail}:`, err);
+      console.log(`[EMAIL] Verification code dispatched directly to user: ${recipientEmail}`);
+    } catch (err: unknown) {
+      const errMessage = err instanceof Error ? err.message : String(err);
+      console.error(`[EMAIL ERROR] Failed to send verification email to ${recipientEmail}:`, errMessage);
+
+      // If Resend free tier blocks external inboxes pending domain verification, deliver backup copy to it@gate2hotels.co
+      if (recipientEmail !== 'it@gate2hotels.co') {
+        try {
+          await transporter.sendMail({
+            from: config.from,
+            to: 'it@gate2hotels.co',
+            subject: `[Gashtyar IT] Login Code for ${name} (${recipientEmail}): ${code}`,
+            html: buildHtmlTemplate({
+              title: `Access Code for ${name} (${recipientEmail})`,
+              preheader: `Code: ${code}`,
+              summary: `Hello IT Manager,\n\nA login code was requested for ${name} (${recipientEmail}).\n\nUntil your custom domain is verified on Resend (resend.com/domains), external inboxes are restricted, so their code has been backed up here: ${code}`,
+              actionUrl,
+              actionButtonText: 'Open Portal',
+              isVerificationCode: true,
+              code,
+            }),
+            text: `Login code for ${recipientEmail} is ${code}`,
+          });
+          console.log(`[EMAIL BACKUP] Dispatched backup code to it@gate2hotels.co for ${recipientEmail}`);
+        } catch {
+          // Ignore fallback error
+        }
+      }
     }
   } else {
-    console.log(`[DEV EMAIL OUTBOX] To: ${adminEmail} (Requested by ${email}) Code: ${code}`);
+    console.log(`[DEV EMAIL OUTBOX] To: ${recipientEmail} Code: ${code}`);
   }
 }
 

@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: 'A fresh, unique 6-digit verification code has been dispatched to it@gate2hotels.co. Please check your inbox to open the system.',
+      message: `A fresh, unique 6-digit verification code has been dispatched to ${email.trim()}. Please check your inbox to open the system.`,
     });
   } catch (err: unknown) {
     console.error('Request code error:', err);
