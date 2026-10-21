@@ -113,8 +113,8 @@ export function AuthModal({ onAuthenticated, tabToken }: AuthModalProps) {
   };
 
   const demoAccounts = [
-    { email: 'it.admin@gashtyar.com', role: 'IT Manager', name: 'Gahin Mayi' },
-    { email: 'ceo@gashtyar.com', role: 'Executive Manager', name: 'Hersh Ahmed' },
+    { email: 'it@gate2hotels.co', role: 'IT Manager (Super Admin)', name: 'Gahin Mayi' },
+    { email: 'almaeegahin@gmail.com', role: 'Operations Manager', name: 'Gahin (Manager Test)' },
     { email: 'auditor@gashtyar.com', role: 'Auditor (Viewer)', name: 'Maryam Zaki' },
   ];
 
@@ -159,7 +159,7 @@ export function AuthModal({ onAuthenticated, tabToken }: AuthModalProps) {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleRequestCode()}
-                  placeholder="e.g. it.admin@gashtyar.com"
+                  placeholder="e.g. it@gate2hotels.co"
                   className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 text-sm text-slate-900 focus:outline-hidden focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all"
                 />
               </div>

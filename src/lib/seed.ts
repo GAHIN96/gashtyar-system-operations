@@ -19,10 +19,17 @@ export async function seedDatabase() {
   const users = [
     {
       id: 'usr_admin_1',
-      email: 'it.admin@gashtyar.com',
-      name: 'Azad Al-Gashtyar',
+      email: 'it@gate2hotels.co',
+      name: 'Gahin Mayi (IT Manager)',
       role: 'ADMIN',
       department: 'IT & Infrastructure',
+    },
+    {
+      id: 'usr_mgr_test',
+      email: 'almaeegahin@gmail.com',
+      name: 'Gahin (Manager Test)',
+      role: 'MANAGER',
+      department: 'Operations Management',
     },
     {
       id: 'usr_mgr_1',

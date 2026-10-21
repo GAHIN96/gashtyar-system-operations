@@ -254,7 +254,7 @@ export function Header({
                         <button
                           onClick={() => {
                             setDropdownOpen(false);
-                            onSwitchRoleForDemo('it.admin@gashtyar.com');
+                            onSwitchRoleForDemo('it@gate2hotels.co');
                           }}
                           className={`px-2 py-1.5 text-[11px] rounded-lg font-bold border text-center transition-colors cursor-pointer ${
                             user.role === 'ADMIN'
@@ -267,7 +267,7 @@ export function Header({
                         <button
                           onClick={() => {
                             setDropdownOpen(false);
-                            onSwitchRoleForDemo('ceo@gashtyar.com');
+                            onSwitchRoleForDemo('almaeegahin@gmail.com');
                           }}
                           className={`px-2 py-1.5 text-[11px] rounded-lg font-bold border text-center transition-colors cursor-pointer ${
                             user.role === 'MANAGER'
@@ -275,7 +275,7 @@ export function Header({
                               : 'bg-white text-slate-700 hover:bg-slate-100 border-slate-200'
                           }`}
                         >
-                          Management
+                          Manager Test
                         </button>
                         <button
                           onClick={() => {

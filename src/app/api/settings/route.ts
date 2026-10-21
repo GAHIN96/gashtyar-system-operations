@@ -29,7 +29,7 @@ export async function GET(req: NextRequest) {
       name: settingsMap['company_name'] || 'Gashtyar Travel & Tourism LLC',
       hq: settingsMap['company_hq'] || 'Baghdad, Al-Mansour, District 602, Iraq',
       timezone: 'Asia/Baghdad (UTC+03:00)',
-      primaryContact: settingsMap['company_it_contact'] || 'it.admin@gashtyar.com',
+      primaryContact: settingsMap['company_it_contact'] || 'it@gate2hotels.co',
       portalVersion: 'v2.4.0-enterprise',
     },
     smtp: {

@@ -42,7 +42,7 @@ export function AdminUsersTab({ isAdmin = false }: SettingsTabProps) {
     name: 'Gashtyar Travel & Tourism LLC',
     hq: 'Baghdad, Al-Mansour, District 602, Iraq',
     timezone: 'Asia/Baghdad (UTC+03:00)',
-    primaryContact: 'it.admin@gashtyar.com',
+    primaryContact: 'it@gate2hotels.co',
     portalVersion: 'v2.4.0-enterprise',
   });
 
