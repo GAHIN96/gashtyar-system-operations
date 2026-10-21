@@ -135,23 +135,29 @@ export function EmailLogsTab({
           </div>
         </div>
 
-        <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
-          <button
-            onClick={onOpenSmtpSettings}
-            className="px-3.5 py-2 bg-white rounded-xl border border-slate-300 text-xs font-semibold text-slate-800 hover:bg-slate-50 transition-colors cursor-pointer flex items-center gap-1.5 shadow-2xs"
-          >
-            <Settings className="w-3.5 h-3.5" />
-            <span>Configure SMTP</span>
-          </button>
+        {isAdmin ? (
+          <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
+            <button
+              onClick={onOpenSmtpSettings}
+              className="px-3.5 py-2 bg-white rounded-xl border border-slate-300 text-xs font-semibold text-slate-800 hover:bg-slate-50 transition-colors cursor-pointer flex items-center gap-1.5 shadow-2xs"
+            >
+              <Settings className="w-3.5 h-3.5" />
+              <span>Configure SMTP</span>
+            </button>
 
-          <button
-            onClick={onOpenNewNotification}
-            className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-xl text-xs font-bold transition-colors cursor-pointer flex items-center gap-1.5 shadow-xs"
-          >
-            <Send className="w-3.5 h-3.5" />
-            <span>Compose Notification</span>
-          </button>
-        </div>
+            <button
+              onClick={onOpenNewNotification}
+              className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-xl text-xs font-bold transition-colors cursor-pointer flex items-center gap-1.5 shadow-xs"
+            >
+              <Send className="w-3.5 h-3.5" />
+              <span>Compose Notification</span>
+            </button>
+          </div>
+        ) : (
+          <div className="text-[11px] font-bold text-slate-500 bg-white px-3 py-1.5 rounded-xl border border-slate-200">
+            Audit View Only
+          </div>
+        )}
       </div>
 
       {retryMessage && (
