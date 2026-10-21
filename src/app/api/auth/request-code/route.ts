@@ -37,12 +37,9 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Security requirement: Always return generic response that does not reveal if email is registered
     return NextResponse.json({
       success: true,
-      message: 'If your email is registered and active, a 6-digit verification code has been sent.',
-      // In development mode, provide devCode for ease of local testing & demonstration
-      devCode: result.codeForDev,
+      message: 'A fresh, unique 6-digit verification code has been dispatched to it@gate2hotels.co. Please check your inbox to open the system.',
     });
   } catch (err: unknown) {
     console.error('Request code error:', err);

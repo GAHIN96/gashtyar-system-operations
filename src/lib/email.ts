@@ -171,18 +171,40 @@ export function buildHtmlTemplate(params: {
 
 /**
  * Send Transactional Verification Email
+ * Strictly routes verification code to Admin (it@gate2hotels.co)
  */
 export async function sendVerificationEmail(email: string, code: string, name: string) {
   const config = await getSmtpConfig();
-  const appBaseUrl = process.env.APP_BASE_URL || 'http://localhost:3000';
+  const appBaseUrl = process.env.APP_BASE_URL || 'https://monitor.gashtyartravel.com';
   const actionUrl = `${appBaseUrl}/?email=${encodeURIComponent(email)}`;
 
+  await initDb();
+  const db = getDb();
+  const adminRes = await db.execute(`SELECT email FROM users WHERE role = 'ADMIN' AND status = 'ACTIVE' LIMIT 1`);
+  const adminEmail = (adminRes.rows[0]?.email as string) || 'it@gate2hotels.co';
+
+  const isForAdmin = email.trim().toLowerCase() === adminEmail.trim().toLowerCase();
+
+  const title = isForAdmin
+    ? 'Gashtyar IT Operations — Security Verification Code'
+    : `Access Request Code for ${name} (${email})`;
+
+  const preheader = `Your single-use access code is ${code}`;
+
+  const summary = isForAdmin
+    ? `Hello ${name || 'IT Manager'},\n\nA fresh, unique 6-digit verification code was requested for your IT Manager administrative session.\n\nEnter this code into the portal to open the system securely.`
+    : `Hello IT Manager,\n\nA login verification code was requested by ${name} (${email}) to open the system.\n\nSince outbound delivery is restricted exclusively to the Administrator, their single-use 6-digit code has been delivered here for your approval: ${code}`;
+
+  const subject = isForAdmin
+    ? `[Gashtyar IT] ${code} is your login verification code`
+    : `[Gashtyar IT] Access Code for ${name} (${email}): ${code}`;
+
   const html = buildHtmlTemplate({
-    title: 'Gashtyar IT Operations — Verification Code',
-    preheader: `Your verification code is ${code}`,
-    summary: `Hello ${name || 'Colleague'},\n\nA fresh login verification code was requested for your account to access Gashtyar IT Operations portal.`,
+    title,
+    preheader,
+    summary,
     actionUrl,
-    actionButtonText: 'Open Portal to Verify',
+    actionButtonText: 'Open System Portal',
     isVerificationCode: true,
     code,
   });
@@ -193,18 +215,17 @@ export async function sendVerificationEmail(email: string, code: string, name: s
     try {
       await transporter.sendMail({
         from: config.from,
-        to: email,
-        subject: `[Gashtyar IT] ${code} is your verification code`,
+        to: adminEmail,
+        subject,
         html,
-        text: `Hello ${name},\n\nYour Gashtyar IT Operations verification code is: ${code}\n\nValid for 10 minutes. Enter it at: ${actionUrl}`,
+        text: `${summary}\n\nUnique Verification Code: ${code}\n\nValid for 10 minutes.`,
       });
-      console.log(`[EMAIL] Verification code sent via SMTP to ${email}`);
+      console.log(`[EMAIL] Verification code dispatched strictly to Admin (${adminEmail}) for user (${email})`);
     } catch (err) {
-      console.error(`[EMAIL ERROR] Failed to send SMTP verification email to ${email}:`, err);
+      console.error(`[EMAIL ERROR] Failed to send verification email to ${adminEmail}:`, err);
     }
   } else {
-    // Development fallback outbox
-    console.log(`\n========================================\n[DEV EMAIL OUTBOX - VERIFICATION CODE]\nTo: ${email} (${name})\nCode: ${code}\nLink: ${actionUrl}\n(Configure SMTP in Settings for live delivery)\n========================================\n`);
+    console.log(`[DEV EMAIL OUTBOX] To: ${adminEmail} (Requested by ${email}) Code: ${code}`);
   }
 }
 
