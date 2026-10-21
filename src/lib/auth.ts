@@ -24,6 +24,38 @@ export function hashString(input: string): string {
   return crypto.createHash('sha256').update(input).digest('hex');
 }
 
+const SESSION_HMAC_SECRET = process.env.SESSION_SECRET || 'gashtyar-super-secure-session-key-2026-ops';
+
+export function signSessionToken(sessionId: string, userId: string, createdAt: number): string {
+  const data = `${sessionId}.${userId}.${createdAt}`;
+  const sig = crypto.createHmac('sha256', SESSION_HMAC_SECRET).update(data).digest('hex');
+  return `${data}.${sig}`;
+}
+
+export function verifySignedSessionToken(token: string): { valid: boolean; sessionId?: string; userId?: string; createdAt?: number } {
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 4) return { valid: false };
+    const [sessionId, userId, createdAtStr, sig] = parts;
+    const createdAt = parseInt(createdAtStr, 10);
+    if (isNaN(createdAt)) return { valid: false };
+
+    // Check absolute 8-hour expiration
+    const maxAge = ABSOLUTE_SESSION_HOURS * 60 * 60 * 1000;
+    if (Date.now() - createdAt > maxAge) return { valid: false };
+
+    const expectedSig = crypto.createHmac('sha256', SESSION_HMAC_SECRET).update(`${sessionId}.${userId}.${createdAtStr}`).digest('hex');
+    const sigBuf = Buffer.from(sig);
+    const expBuf = Buffer.from(expectedSig);
+    if (sigBuf.length === expBuf.length && crypto.timingSafeEqual(sigBuf, expBuf)) {
+      return { valid: true, sessionId, userId, createdAt };
+    }
+    return { valid: false };
+  } catch {
+    return { valid: false };
+  }
+}
+
 /**
  * Generate cryptographically secure 6-digit code
  */
@@ -196,9 +228,9 @@ export async function verifyCodeAndCreateSession(
   const user = userResult.rows[0] as unknown as SessionUser;
 
   // Create new server session paired with tabToken
-  const sessionToken = crypto.randomBytes(32).toString('hex');
-  const sessionTokenHash = hashString(sessionToken);
   const sessionId = crypto.randomUUID();
+  const sessionToken = signSessionToken(sessionId, user.id, now.getTime());
+  const sessionTokenHash = hashString(sessionToken);
 
   const inactivityExpiresAt = new Date(now.getTime() + INACTIVITY_TIMEOUT_MINUTES * 60 * 1000).toISOString();
   const absoluteExpiresAt = new Date(now.getTime() + ABSOLUTE_SESSION_HOURS * 60 * 60 * 1000).toISOString();
@@ -263,7 +295,37 @@ export async function validateSession(
   });
 
   if (sessionResult.rows.length === 0) {
-    return { valid: false, error: 'Session not found' };
+    // Attempt cryptographic HMAC self-healing recovery across serverless lambdas
+    const verified = verifySignedSessionToken(sessionToken);
+    if (verified.valid && verified.userId && verified.sessionId) {
+      const userRes = await db.execute({
+        sql: `SELECT id, email, name, role, status, department FROM users WHERE id = ?`,
+        args: [verified.userId],
+      });
+      if (userRes.rows.length > 0 && userRes.rows[0].status === 'ACTIVE') {
+        const u = userRes.rows[0];
+        const nextInactivityExpiry = new Date(now.getTime() + INACTIVITY_TIMEOUT_MINUTES * 60 * 1000).toISOString();
+        const absoluteExpiresAt = new Date((verified.createdAt || now.getTime()) + ABSOLUTE_SESSION_HOURS * 60 * 60 * 1000).toISOString();
+        await db.execute({
+          sql: `INSERT OR REPLACE INTO sessions 
+                (id, token_hash, user_id, tab_token, expires_at, absolute_expires_at, last_activity_at, ip_address, user_agent, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, 'restored', 'restored', ?)`,
+          args: [verified.sessionId, tokenHash, u.id, tabToken || 'tab_default', nextInactivityExpiry, absoluteExpiresAt, nowUtc(), nowUtc()],
+        });
+        return {
+          valid: true,
+          user: {
+            id: u.id as string,
+            email: u.email as string,
+            name: u.name as string,
+            role: u.role as 'ADMIN' | 'MANAGER' | 'VIEWER',
+            status: u.status as 'ACTIVE' | 'INACTIVE',
+            department: (u.department as string) || 'Operations',
+          },
+        };
+      }
+    }
+    return { valid: false, error: 'Session expired or not found. Please log in with your email verification code.' };
   }
 
   const row = sessionResult.rows[0];

@@ -188,7 +188,11 @@ export function SystemEditModal({
 
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error || 'Failed to save system.');
+        if (res.status === 401) {
+          setError('Session expired or invalidated. Please refresh to log in again with your code.');
+        } else {
+          setError(data.error || 'Failed to save system.');
+        }
         setSubmitting(false);
         return;
       }

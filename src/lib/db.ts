@@ -3,11 +3,23 @@ import path from 'path';
 import fs from 'fs';
 
 function getDatabaseConfig(): { url: string; authToken?: string } {
-  const remoteUrl = process.env.TURSO_DATABASE_URL || process.env.DATABASE_URL;
+  const remoteUrl =
+    process.env.TURSO_DATABASE_URL ||
+    process.env.DATABASE_URL ||
+    process.env.TURSO_URL ||
+    process.env.LIBSQL_DATABASE_URL ||
+    process.env.LIBSQL_URL;
+
+  const authToken =
+    process.env.TURSO_AUTH_TOKEN ||
+    process.env.DATABASE_AUTH_TOKEN ||
+    process.env.TURSO_TOKEN ||
+    process.env.LIBSQL_AUTH_TOKEN;
+
   if (remoteUrl && (remoteUrl.startsWith('libsql://') || remoteUrl.startsWith('https://') || remoteUrl.startsWith('http://'))) {
     return {
       url: remoteUrl,
-      authToken: process.env.TURSO_AUTH_TOKEN,
+      authToken,
     };
   }
 

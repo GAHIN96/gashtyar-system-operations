@@ -148,7 +148,14 @@ export default function GashtyarITOperationsApp() {
       if (!headers.has('x-tab-token')) {
         headers.set('x-tab-token', token!);
       }
-      return origFetch(input, { ...init, headers });
+      const res = await origFetch(input, { ...init, headers });
+      if (res.status === 401) {
+        const urlStr = typeof input === 'string' ? input : (input as Request).url || '';
+        if (!urlStr.includes('/api/auth/')) {
+          setCurrentUser(null);
+        }
+      }
+      return res;
     };
 
     // Verify existing session
