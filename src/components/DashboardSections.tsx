@@ -14,6 +14,7 @@ import {
   FileText,
   Shield,
   FileSpreadsheet,
+  CheckCircle2,
 } from 'lucide-react';
 import { SystemCard, SystemItemData } from './SystemCard';
 import { DashboardMetrics } from './MetricsRow';
@@ -24,6 +25,7 @@ interface DashboardSectionsProps {
   activeIncidents: any[];
   recentUpdates?: any[];
   comments?: any[];
+  upcomingItems?: any[];
   canManageSystems: boolean;
   onViewDetails: (system: SystemItemData) => void;
   onOpenComments: (system: SystemItemData) => void;
@@ -35,6 +37,9 @@ export function DashboardSections({
   systems,
   metrics,
   activeIncidents,
+  recentUpdates = [],
+  comments = [],
+  upcomingItems = [],
   canManageSystems,
   onViewDetails,
   onOpenComments,
@@ -44,6 +49,10 @@ export function DashboardSections({
   const percentOperational = metrics.totalSystems > 0
     ? Math.round((metrics.operationalSystems / metrics.totalSystems) * 100)
     : 100;
+
+  const pendingCount = (comments || []).filter(
+    (c) => c.is_request_update === 1 && (!c.it_response || c.request_status === 'OPEN')
+  ).length;
 
   return (
     <div className="space-y-6">
@@ -200,37 +209,57 @@ export function DashboardSections({
             </button>
           </div>
 
-          {/* Incident Row Box (Matching reference) */}
-          <div
-            onClick={() => onNavigateTab('incidents')}
-            className="p-3.5 rounded-xl bg-red-50/50 border border-red-200/70 hover:border-red-300 transition-all cursor-pointer flex items-center justify-between gap-3 my-auto"
-          >
-            <div className="flex items-center gap-3 min-w-0">
-              <span className="shrink-0 px-2 py-1 bg-red-100 text-[#EA2839] font-bold text-xs rounded-lg">
-                P1
-              </span>
-              <div className="min-w-0">
-                <h4 className="text-xs font-bold text-slate-900 truncate">
-                  Sabre GDS Latency Spike on Flight Search
-                </h4>
-                <div className="text-[11px] text-slate-500 truncate mt-0.5">
-                  Ticketaat Flights &bull; INC-2026-001
+          {/* Incident Row Box or Clean Empty State */}
+          {activeIncidents && activeIncidents.length > 0 ? (
+            <div
+              onClick={() => onNavigateTab('incidents')}
+              className="p-3.5 rounded-xl bg-red-50/50 border border-red-200/70 hover:border-red-300 transition-all cursor-pointer flex items-center justify-between gap-3 my-auto"
+            >
+              <div className="flex items-center gap-3 min-w-0">
+                <span className="shrink-0 px-2 py-1 bg-red-100 text-[#EA2839] font-bold text-xs rounded-lg">
+                  {activeIncidents[0].priority || 'P1'}
+                </span>
+                <div className="min-w-0">
+                  <h4 className="text-xs font-bold text-slate-900 truncate">
+                    {activeIncidents[0].title}
+                  </h4>
+                  <div className="text-[11px] text-slate-500 truncate mt-0.5">
+                    {activeIncidents[0].affected_systems_names || 'General'} &bull; {activeIncidents[0].reference_number || activeIncidents[0].id}
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div className="flex items-center gap-2 shrink-0">
-              <div className="text-right">
-                <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-100/80 text-[#EA2839]">
-                  In Progress
-                </span>
-                <div className="text-[10px] font-mono text-slate-500 mt-0.5">
-                  ETA 18:46:41
+              <div className="flex items-center gap-2 shrink-0">
+                <div className="text-right">
+                  <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-100/80 text-[#EA2839]">
+                    {activeIncidents[0].status?.replace('_', ' ') || 'In Progress'}
+                  </span>
+                  <div className="text-[10px] font-mono text-slate-500 mt-0.5">
+                    {activeIncidents[0].eta_date
+                      ? `ETA ${new Date(activeIncidents[0].eta_date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+                      : 'Active'}
+                  </div>
+                </div>
+                <ChevronRight className="w-4 h-4 text-slate-300" />
+              </div>
+            </div>
+          ) : (
+            <div
+              onClick={() => onNavigateTab('incidents')}
+              className="p-4 rounded-xl bg-emerald-50/40 border border-emerald-100 hover:border-emerald-200 transition-all cursor-pointer flex items-center justify-between gap-3 my-auto"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
+                  <CheckCircle2 className="w-4 h-4" />
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold text-slate-900">All Systems Operational</h4>
+                  <p className="text-[11px] text-slate-500">No active incidents reported</p>
                 </div>
               </div>
               <ChevronRight className="w-4 h-4 text-slate-300" />
             </div>
-          </div>
+          )}
         </div>
 
         {/* Card 3: Recent Updates */}
@@ -249,36 +278,58 @@ export function DashboardSections({
             </button>
           </div>
 
-          {/* Update Row Box (Matching reference) */}
-          <div
-            onClick={() => onNavigateTab('updates')}
-            className="p-3.5 rounded-xl bg-blue-50/40 border border-blue-100 hover:border-blue-300 transition-all cursor-pointer flex items-center justify-between gap-3 my-auto"
-          >
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="w-8 h-8 rounded-lg bg-blue-100/80 text-[#0077C8] flex items-center justify-center shrink-0">
-                <Rocket className="w-4 h-4" />
-              </div>
-              <span className="text-xs font-bold text-[#0077C8] shrink-0">v2.4</span>
-              <div className="min-w-0">
-                <h4 className="text-xs font-bold text-slate-900 truncate">
-                  Multi-Currency Direct Settlement
-                </h4>
-                <div className="text-[11px] text-slate-500 truncate mt-0.5">
-                  Gate2Hotels B2B
+          {/* Update Row Box or Clean Empty State */}
+          {recentUpdates && recentUpdates.length > 0 ? (
+            <div
+              onClick={() => onNavigateTab('updates')}
+              className="p-3.5 rounded-xl bg-blue-50/40 border border-blue-100 hover:border-blue-300 transition-all cursor-pointer flex items-center justify-between gap-3 my-auto"
+            >
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-8 h-8 rounded-lg bg-blue-100/80 text-[#0077C8] flex items-center justify-center shrink-0">
+                  <Rocket className="w-4 h-4" />
+                </div>
+                {recentUpdates[0].version && (
+                  <span className="text-xs font-bold text-[#0077C8] shrink-0">v{recentUpdates[0].version}</span>
+                )}
+                <div className="min-w-0">
+                  <h4 className="text-xs font-bold text-slate-900 truncate">
+                    {recentUpdates[0].title}
+                  </h4>
+                  <div className="text-[11px] text-slate-500 truncate mt-0.5">
+                    {recentUpdates[0].affected_systems_names || 'General Release'}
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div className="flex items-center gap-2 shrink-0">
-              <div className="text-right">
-                <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/60">
-                  Deployed
-                </span>
-                <div className="text-[10px] text-slate-400 mt-0.5">15 Oct 2026</div>
+              <div className="flex items-center gap-2 shrink-0">
+                <div className="text-right">
+                  <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/60">
+                    {recentUpdates[0].status || 'Released'}
+                  </span>
+                  <div className="text-[10px] text-slate-400 mt-0.5">
+                    {recentUpdates[0].release_date || (recentUpdates[0].created_at ? new Date(recentUpdates[0].created_at).toLocaleDateString([], { day: '2-digit', month: 'short' }) : '')}
+                  </div>
+                </div>
+                <ChevronRight className="w-4 h-4 text-slate-300" />
+              </div>
+            </div>
+          ) : (
+            <div
+              onClick={() => onNavigateTab('updates')}
+              className="p-4 rounded-xl bg-slate-50/80 border border-slate-100 hover:border-slate-200 transition-all cursor-pointer flex items-center justify-between gap-3 my-auto"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-blue-50 text-[#0077C8] flex items-center justify-center shrink-0">
+                  <Rocket className="w-4 h-4" />
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold text-slate-900">No Releases Published Yet</h4>
+                  <p className="text-[11px] text-slate-500">System releases and updates will appear here</p>
+                </div>
               </div>
               <ChevronRight className="w-4 h-4 text-slate-300" />
             </div>
-          </div>
+          )}
         </div>
       </div>
 
@@ -298,9 +349,15 @@ export function DashboardSections({
               <h3 className="text-sm font-bold text-slate-900">
                 Management Discussions & Requests
               </h3>
-              <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
-                Pending IT Response &nbsp;1
-              </span>
+              {pendingCount > 0 ? (
+                <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
+                  Pending IT Response &nbsp;{pendingCount}
+                </span>
+              ) : comments && comments.length > 0 ? (
+                <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-blue-50 text-[#0077C8] border border-blue-200">
+                  {comments.length} Messages
+                </span>
+              ) : null}
             </div>
 
             <button
@@ -312,107 +369,81 @@ export function DashboardSections({
             </button>
           </div>
 
-          {/* 3 Discussion Rows (Exactly matching reference text & layout) */}
-          <div className="space-y-3">
-            {/* Message 1: Amenah Karim */}
+          {/* Real Comments or Clean Empty State */}
+          {comments && comments.length > 0 ? (
+            <div className="space-y-3">
+              {comments.slice(0, 3).map((cmt) => {
+                const authorInitial = (cmt.author_display_name || cmt.author_name || 'U').charAt(0).toUpperCase();
+                const isManager = (cmt.author_actual_role || cmt.author_role) === 'MANAGER';
+                const isAdmin = (cmt.author_actual_role || cmt.author_role) === 'ADMIN';
+                const dateStr = cmt.created_at
+                  ? new Date(cmt.created_at).toLocaleString([], { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+                  : '';
+
+                return (
+                  <div
+                    key={cmt.id}
+                    onClick={() => onNavigateTab('discussion')}
+                    className="p-3.5 rounded-xl bg-slate-50/70 border border-slate-100 hover:border-slate-300 transition-all cursor-pointer flex items-start justify-between gap-3 group"
+                  >
+                    <div className="flex items-start gap-3 min-w-0">
+                      <div
+                        className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0 mt-0.5 ${
+                          isAdmin ? 'bg-sky-100 text-[#0077C8]' : isManager ? 'bg-amber-100 text-amber-700' : 'bg-violet-100 text-violet-700'
+                        }`}
+                      >
+                        {authorInitial}
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-xs font-bold text-slate-900">{cmt.author_display_name || cmt.author_name}</span>
+                          <span
+                            className={`text-[10px] font-bold px-2 py-0.2 rounded-full border ${
+                              isAdmin ? 'bg-blue-50 text-[#0077C8] border-blue-200' : 'bg-amber-50 text-amber-700 border-amber-200'
+                            }`}
+                          >
+                            {isAdmin ? 'IT MANAGER' : 'MANAGER'}
+                          </span>
+                          {cmt.is_request_update === 1 && (
+                            <span className="text-[10px] font-bold px-2 py-0.2 rounded-full bg-blue-50 text-[#0077C8] border border-blue-200">
+                              Update Requested
+                            </span>
+                          )}
+                          <span className="text-[11px] text-slate-400">{dateStr}</span>
+                        </div>
+                        <p className="text-xs text-slate-600 mt-1 line-clamp-2 leading-relaxed">
+                          {cmt.content}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 shrink-0 text-xs text-slate-400 pt-1">
+                      {cmt.reply_count !== undefined && cmt.reply_count > 0 && (
+                        <div className="flex items-center gap-1 font-semibold text-slate-500">
+                          <MessageSquare className="w-3.5 h-3.5" />
+                          <span>{cmt.reply_count}</span>
+                        </div>
+                      )}
+                      <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-slate-600 group-hover:translate-x-0.5 transition-all" />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
             <div
               onClick={() => onNavigateTab('discussion')}
-              className="p-3.5 rounded-xl bg-slate-50/70 border border-slate-100 hover:border-slate-300 transition-all cursor-pointer flex items-start justify-between gap-3 group"
+              className="py-10 px-4 rounded-xl bg-slate-50/50 border border-slate-100 text-center cursor-pointer hover:border-slate-200 transition-colors my-auto"
             >
-              <div className="flex items-start gap-3 min-w-0">
-                <div className="w-8 h-8 rounded-full bg-violet-100 text-violet-700 flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
-                  A
-                </div>
-                <div>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-xs font-bold text-slate-900">Amenah Karim</span>
-                    <span className="text-[10px] font-bold px-2 py-0.2 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
-                      MANAGER
-                    </span>
-                    <span className="text-[11px] text-slate-400">16 Oct 2026, 13:16</span>
-                  </div>
-                  <p className="text-xs text-slate-600 mt-1 line-clamp-2 leading-relaxed">
-                    Biometric shift records for the Eid holiday schedule have been synchronized across all branches. All branch managers have confirmed local punch logs.
-                  </p>
-                </div>
+              <div className="w-9 h-9 rounded-full bg-blue-50 text-[#0077C8] flex items-center justify-center mx-auto mb-2.5">
+                <MessageSquare className="w-4 h-4" />
               </div>
-
-              <div className="flex items-center gap-2 shrink-0 text-xs text-slate-400 pt-1">
-                <div className="flex items-center gap-1 font-semibold">
-                  <MessageSquare className="w-3.5 h-3.5" />
-                  <span>2</span>
-                </div>
-                <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-slate-600 group-hover:translate-x-0.5 transition-all" />
-              </div>
+              <h4 className="text-xs font-bold text-slate-800">No Management Discussions Yet</h4>
+              <p className="text-[11px] text-slate-400 mt-0.5 max-w-sm mx-auto">
+                Discussions and operational inquiries between management and IT team will appear here in real time.
+              </p>
             </div>
-
-            {/* Message 2: Hersh Ahmed */}
-            <div
-              onClick={() => onNavigateTab('discussion')}
-              className="p-3.5 rounded-xl bg-slate-50/70 border border-slate-100 hover:border-slate-300 transition-all cursor-pointer flex items-start justify-between gap-3 group"
-            >
-              <div className="flex items-start gap-3 min-w-0">
-                <div className="w-8 h-8 rounded-full bg-blue-100 text-[#0077C8] flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
-                  H
-                </div>
-                <div>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-xs font-bold text-slate-900">Hersh Ahmed</span>
-                    <span className="text-[10px] font-bold px-2 py-0.2 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
-                      MANAGER
-                    </span>
-                    <span className="text-[10px] font-bold px-2 py-0.2 rounded-full bg-blue-50 text-[#0077C8] border border-blue-200">
-                      Update Requested
-                    </span>
-                    <span className="text-[11px] text-slate-400">16 Oct 2026, 11:45</span>
-                  </div>
-                  <p className="text-xs text-slate-600 mt-1 line-clamp-2 leading-relaxed">
-                    Azad, are high-priority corporate accounts able to complete issuance while the Sabre latency is being resolved?
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2 shrink-0 text-xs text-slate-400 pt-1">
-                <div className="flex items-center gap-1 font-semibold">
-                  <MessageSquare className="w-3.5 h-3.5" />
-                  <span>3</span>
-                </div>
-                <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-slate-600 group-hover:translate-x-0.5 transition-all" />
-              </div>
-            </div>
-
-            {/* Message 3: Gahin Mayi */}
-            <div
-              onClick={() => onNavigateTab('discussion')}
-              className="p-3.5 rounded-xl bg-slate-50/70 border border-slate-100 hover:border-slate-300 transition-all cursor-pointer flex items-start justify-between gap-3 group"
-            >
-              <div className="flex items-start gap-3 min-w-0">
-                <div className="w-8 h-8 rounded-full bg-sky-100 text-[#0077C8] flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
-                  G
-                </div>
-                <div>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-xs font-bold text-slate-900">Gahin Mayi</span>
-                    <span className="text-[10px] font-bold px-2 py-0.2 rounded-full bg-blue-50 text-[#0077C8] border border-blue-200">
-                      IT MANAGER
-                    </span>
-                    <span className="text-[11px] text-slate-400">16 Oct 2026, 10:20</span>
-                  </div>
-                  <p className="text-xs text-slate-600 mt-1 line-clamp-2 leading-relaxed">
-                    Confirmed. Direct Amadeus GDS routing handles ticketing queue immediately. Only multi-destination search queries are affected by the slowdown.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2 shrink-0 text-xs text-slate-400 pt-1">
-                <div className="flex items-center gap-1 font-semibold">
-                  <MessageSquare className="w-3.5 h-3.5" />
-                  <span>1</span>
-                </div>
-                <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-slate-600 group-hover:translate-x-0.5 transition-all" />
-              </div>
-            </div>
-          </div>
+          )}
         </div>
 
         {/* Right Column: Upcoming & Important */}
@@ -423,7 +454,7 @@ export function DashboardSections({
               <h3 className="text-sm font-bold text-slate-900">Upcoming &amp; Important</h3>
             </div>
             <button
-              onClick={() => onNavigateTab('servers')}
+              onClick={() => onNavigateTab('updates')}
               className="text-xs font-semibold text-[#0077C8] hover:text-[#0060A8] flex items-center gap-0.5 cursor-pointer"
             >
               <span>View All</span>
@@ -431,123 +462,89 @@ export function DashboardSections({
             </button>
           </div>
 
-          {/* 5 Priority Rows (Matching reference) */}
-          <div className="space-y-3">
-            {/* Row 1 */}
-            <div className="flex items-center justify-between gap-3 p-2.5 rounded-xl hover:bg-slate-50 transition-colors cursor-pointer group">
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="w-8 h-8 rounded-lg bg-rose-50 text-[#EA2839] flex items-center justify-center shrink-0">
-                  <Building className="w-4 h-4" />
-                </div>
-                <div className="min-w-0">
-                  <h4 className="text-xs font-bold text-slate-900 truncate">
-                    Follow up with PeakPoint credentials
-                  </h4>
-                  <div className="text-[11px] text-slate-400 truncate">Supplier Integration</div>
-                </div>
-              </div>
+          {/* Real Upcoming Items or Clean Empty State */}
+          {upcomingItems && upcomingItems.length > 0 ? (
+            <div className="space-y-3">
+              {upcomingItems.slice(0, 5).map((item) => {
+                const getBadgeStyle = (badge: string) => {
+                  const b = (badge || '').toUpperCase();
+                  if (b === 'CRITICAL' || b === 'OVERDUE' || b === 'P1') {
+                    return 'bg-rose-50 text-[#EA2839] border-rose-200';
+                  }
+                  if (b === 'HIGH' || b === 'P2') {
+                    return 'bg-amber-50 text-amber-700 border-amber-200';
+                  }
+                  if (b === 'MEDIUM' || b === 'P3' || b === 'IN_PROGRESS' || b === 'TESTING') {
+                    return 'bg-blue-50 text-[#0077C8] border-blue-200';
+                  }
+                  return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+                };
 
-              <div className="flex items-center gap-2.5 shrink-0">
-                <span className="text-[11px] text-slate-400 font-medium">18 Oct</span>
-                <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-rose-50 text-[#EA2839] border border-rose-200">
-                  Overdue
-                </span>
-                <ChevronRight className="w-3.5 h-3.5 text-slate-300 group-hover:text-slate-600 transition-all" />
-              </div>
+                const getIcon = (cat: string) => {
+                  if (cat === 'Security') return <Shield className="w-4 h-4 text-emerald-600" />;
+                  if (cat === 'Incident') return <AlertTriangle className="w-4 h-4 text-[#EA2839]" />;
+                  if (cat === 'Release') return <Rocket className="w-4 h-4 text-[#0077C8]" />;
+                  return <Building className="w-4 h-4 text-[#0077C8]" />;
+                };
+
+                const getIconBg = (cat: string) => {
+                  if (cat === 'Security') return 'bg-emerald-50';
+                  if (cat === 'Incident') return 'bg-rose-50';
+                  if (cat === 'Release') return 'bg-blue-50';
+                  return 'bg-slate-100';
+                };
+
+                const dateStr = item.date
+                  ? new Date(item.date).toLocaleDateString([], { day: '2-digit', month: 'short' })
+                  : 'Scheduled';
+
+                return (
+                  <div
+                    key={item.id}
+                    onClick={() => {
+                      if (item.category === 'Incident') onNavigateTab('incidents');
+                      else if (item.category === 'Security') onNavigateTab('security');
+                      else onNavigateTab('updates');
+                    }}
+                    className="flex items-center justify-between gap-3 p-2.5 rounded-xl hover:bg-slate-50 transition-colors cursor-pointer group"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${getIconBg(item.category)}`}>
+                        {getIcon(item.category)}
+                      </div>
+                      <div className="min-w-0">
+                        <h4 className="text-xs font-bold text-slate-900 truncate">
+                          {item.title}
+                        </h4>
+                        <div className="text-[11px] text-slate-400 truncate">{item.category}</div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2.5 shrink-0">
+                      <span className="text-[11px] text-slate-400 font-medium">{dateStr}</span>
+                      <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full border ${getBadgeStyle(item.badge)}`}>
+                        {item.badge}
+                      </span>
+                      <ChevronRight className="w-3.5 h-3.5 text-slate-300 group-hover:text-slate-600 transition-all" />
+                    </div>
+                  </div>
+                );
+              })}
             </div>
-
-            {/* Row 2 */}
-            <div className="flex items-center justify-between gap-3 p-2.5 rounded-xl hover:bg-slate-50 transition-colors cursor-pointer group">
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
-                  <UserCheck className="w-4 h-4" />
-                </div>
-                <div className="min-w-0">
-                  <h4 className="text-xs font-bold text-slate-900 truncate">
-                    Complete Yalago certification (2 test bookings)
-                  </h4>
-                  <div className="text-[11px] text-slate-400 truncate">Supplier Integration</div>
-                </div>
+          ) : (
+            <div
+              onClick={() => onNavigateTab('updates')}
+              className="py-10 px-4 rounded-xl bg-slate-50/50 border border-slate-100 text-center cursor-pointer hover:border-slate-200 transition-colors my-auto"
+            >
+              <div className="w-9 h-9 rounded-full bg-blue-50 text-[#0077C8] flex items-center justify-center mx-auto mb-2.5">
+                <Clock className="w-4 h-4" />
               </div>
-
-              <div className="flex items-center gap-2.5 shrink-0">
-                <span className="text-[11px] text-slate-400 font-medium">20 Oct</span>
-                <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-amber-50 text-amber-700 border border-amber-200">
-                  High
-                </span>
-                <ChevronRight className="w-3.5 h-3.5 text-slate-300 group-hover:text-slate-600 transition-all" />
-              </div>
+              <h4 className="text-xs font-bold text-slate-800">No Upcoming Tasks or Deadlines</h4>
+              <p className="text-[11px] text-slate-400 mt-0.5 max-w-sm mx-auto">
+                Scheduled releases, maintenance windows, and incident resolution targets will appear here.
+              </p>
             </div>
-
-            {/* Row 3 */}
-            <div className="flex items-center justify-between gap-3 p-2.5 rounded-xl hover:bg-slate-50 transition-colors cursor-pointer group">
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="w-8 h-8 rounded-lg bg-blue-50 text-[#0077C8] flex items-center justify-center shrink-0">
-                  <FileText className="w-4 h-4" />
-                </div>
-                <div className="min-w-0">
-                  <h4 className="text-xs font-bold text-slate-900 truncate">
-                    Juniper Extranet Training
-                  </h4>
-                  <div className="text-[11px] text-slate-400 truncate">Team Training</div>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2.5 shrink-0">
-                <span className="text-[11px] text-slate-400 font-medium">22 Oct</span>
-                <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-blue-50 text-[#0077C8] border border-blue-200">
-                  Medium
-                </span>
-                <ChevronRight className="w-3.5 h-3.5 text-slate-300 group-hover:text-slate-600 transition-all" />
-              </div>
-            </div>
-
-            {/* Row 4 */}
-            <div className="flex items-center justify-between gap-3 p-2.5 rounded-xl hover:bg-slate-50 transition-colors cursor-pointer group">
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
-                  <Shield className="w-4 h-4" />
-                </div>
-                <div className="min-w-0">
-                  <h4 className="text-xs font-bold text-slate-900 truncate">
-                    Review Cloudflare IP restriction
-                  </h4>
-                  <div className="text-[11px] text-slate-400 truncate">Security</div>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2.5 shrink-0">
-                <span className="text-[11px] text-slate-400 font-medium">25 Oct</span>
-                <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-blue-50 text-[#0077C8] border border-blue-200">
-                  Medium
-                </span>
-                <ChevronRight className="w-3.5 h-3.5 text-slate-300 group-hover:text-slate-600 transition-all" />
-              </div>
-            </div>
-
-            {/* Row 5 */}
-            <div className="flex items-center justify-between gap-3 p-2.5 rounded-xl hover:bg-slate-50 transition-colors cursor-pointer group">
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
-                  <FileSpreadsheet className="w-4 h-4" />
-                </div>
-                <div className="min-w-0">
-                  <h4 className="text-xs font-bold text-slate-900 truncate">
-                    Monthly system health report
-                  </h4>
-                  <div className="text-[11px] text-slate-400 truncate">Reporting</div>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2.5 shrink-0">
-                <span className="text-[11px] text-slate-400 font-medium">31 Oct</span>
-                <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-                  Low
-                </span>
-                <ChevronRight className="w-3.5 h-3.5 text-slate-300 group-hover:text-slate-600 transition-all" />
-              </div>
-            </div>
-          </div>
+          )}
         </div>
       </div>
     </div>

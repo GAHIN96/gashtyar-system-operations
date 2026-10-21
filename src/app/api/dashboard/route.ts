@@ -145,13 +145,30 @@ export async function GET(req: NextRequest) {
 
   // 7. Recent Management Discussion Comments
   const recentCommentsRes = await db.execute(`
-    SELECT c.*, u.name as user_name
+    SELECT c.*, 
+           COALESCE(u.name, c.author_name) as author_display_name,
+           COALESCE(u.role, c.author_role) as author_actual_role,
+           (SELECT COUNT(*) FROM comments r WHERE r.parent_id = c.id) as reply_count
     FROM comments c
     LEFT JOIN users u ON c.author_id = u.id
-    ORDER BY c.created_at DESC LIMIT 10
+    WHERE c.parent_id IS NULL ${auth.user?.role !== 'ADMIN' ? 'AND c.is_restricted = 0' : ''}
+    ORDER BY c.created_at DESC LIMIT 5
   `);
 
-  // 8. Recent Activity Feed (System changes, incident updates, releases, comments, notifications, security events)
+  // 8. Recent Published Updates
+  const recentUpdatesRes = await db.execute(`
+    SELECT u.*, 
+      GROUP_CONCAT(s.name, ', ') as affected_systems_names,
+      GROUP_CONCAT(s.id, ',') as affected_system_ids
+    FROM updates u
+    LEFT JOIN update_systems us ON u.id = us.update_id
+    LEFT JOIN systems s ON us.system_id = s.id
+    WHERE u.publication_state = 'PUBLISHED'
+    GROUP BY u.id
+    ORDER BY COALESCE(u.release_date, u.created_at) DESC LIMIT 5
+  `);
+
+  // 9. Recent Activity Feed
   const recentActivityRes = await db.execute(`
     SELECT a.*, 
            COALESCE(u.name, a.user_email, 'System') as actor_name,
@@ -160,6 +177,34 @@ export async function GET(req: NextRequest) {
     LEFT JOIN users u ON a.user_id = u.id
     ORDER BY a.created_at DESC LIMIT 20
   `);
+
+  // 10. Real Upcoming Tasks & Important Milestones from Database
+  const upcomingUpdatesRes = await db.execute(`
+    SELECT u.id, u.title, u.target_date as date, 'Release' as category, u.status as badge, 'blue' as badge_color
+    FROM updates u
+    WHERE u.status IN ('PLANNED', 'IN_PROGRESS', 'TESTING') AND u.target_date IS NOT NULL
+    ORDER BY u.target_date ASC LIMIT 5
+  `);
+
+  const openIncidentsRes = await db.execute(`
+    SELECT i.id, i.title, i.eta_date as date, 'Incident' as category, i.severity as badge, 'red' as badge_color
+    FROM incidents i
+    WHERE i.status != 'RESOLVED' AND i.eta_date IS NOT NULL
+    ORDER BY i.eta_date ASC LIMIT 5
+  `);
+
+  const securityTasksRes = await db.execute(`
+    SELECT sf.id, sf.title, sf.due_date as date, 'Security' as category, sf.severity as badge, 'amber' as badge_color
+    FROM security_findings sf
+    WHERE sf.status != 'RESOLVED' AND sf.due_date IS NOT NULL
+    ORDER BY sf.due_date ASC LIMIT 5
+  `);
+
+  const upcomingItems = [
+    ...openIncidentsRes.rows,
+    ...upcomingUpdatesRes.rows,
+    ...securityTasksRes.rows,
+  ].slice(0, 5);
 
   return NextResponse.json({
     metrics: {
@@ -178,8 +223,10 @@ export async function GET(req: NextRequest) {
     },
     systems: enrichedSystems,
     activeIncidents,
+    recentUpdates: recentUpdatesRes.rows,
     recentComments: recentCommentsRes.rows,
     recentActivity: recentActivityRes.rows,
+    upcomingItems,
     currentUser: auth.user,
   });
 }

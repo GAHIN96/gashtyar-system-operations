@@ -69,7 +69,10 @@ export default function GashtyarITOperationsApp() {
   });
   const [systems, setSystems] = useState<SystemItemData[]>([]);
   const [activeIncidents, setActiveIncidents] = useState<any[]>([]);
+  const [recentUpdates, setRecentUpdates] = useState<any[]>([]);
   const [recentActivity, setRecentActivity] = useState<any[]>([]);
+  const [recentComments, setRecentComments] = useState<any[]>([]);
+  const [upcomingItems, setUpcomingItems] = useState<any[]>([]);
   const [loadingDashboard, setLoadingDashboard] = useState(false);
 
   // Modals & Drawers States
@@ -183,7 +186,10 @@ export default function GashtyarITOperationsApp() {
         setMetrics(data.metrics);
         setSystems(data.systems || []);
         setActiveIncidents(data.activeIncidents || []);
+        setRecentUpdates(data.recentUpdates || []);
         setRecentActivity(data.recentActivity || []);
+        setRecentComments(data.recentComments || []);
+        setUpcomingItems(data.upcomingItems || []);
       } else if (res.status === 401) {
         setCurrentUser(null);
       }
@@ -307,6 +313,9 @@ export default function GashtyarITOperationsApp() {
               systems={filteredSystems}
               metrics={metrics}
               activeIncidents={activeIncidents}
+              recentUpdates={recentUpdates}
+              comments={recentComments}
+              upcomingItems={upcomingItems}
               canManageSystems={canManageSystems}
               onViewDetails={(s) => setSelectedDrawerSystem(s)}
               onOpenComments={(s) => setSelectedDrawerSystem(s)}
