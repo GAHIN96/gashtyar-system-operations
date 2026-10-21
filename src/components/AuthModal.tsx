@@ -61,7 +61,7 @@ export function AuthModal({ onAuthenticated, tabToken }: AuthModalProps) {
       setStep('CODE');
       setCode(''); // Always require manual input from real email
       setCooldown(60);
-      setSuccessMsg(data.message || 'Verification code sent to it@gate2hotels.co.');
+      setSuccessMsg(data.message || `Verification code sent to ${finalEmail}.`);
     } catch {
       setError('Connection error requesting code. Please verify network.');
     } finally {
@@ -107,13 +107,6 @@ export function AuthModal({ onAuthenticated, tabToken }: AuthModalProps) {
       setLoading(false);
     }
   };
-
-  const demoAccounts = [
-    { email: 'it@gate2hotels.co', role: 'IT Manager (Super Admin)', name: 'Gahin Mayi' },
-    { email: 'almaeegahin@gmail.com', role: 'Operations Manager', name: 'Gahin (Manager Test)' },
-    { email: 'auditor@gashtyar.com', role: 'Auditor (Viewer)', name: 'Maryam Zaki' },
-  ];
-
   return (
     <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
       <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden animate-modal">
@@ -177,36 +170,6 @@ export function AuthModal({ onAuthenticated, tabToken }: AuthModalProps) {
                   </>
                 )}
               </button>
-
-              {/* Demo Account Quick-Selection */}
-              <div className="mt-6 pt-4 border-t border-slate-100">
-                <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">
-                  Invited Company Accounts:
-                </div>
-                <div className="space-y-1.5">
-                  {demoAccounts.map((acc) => (
-                    <button
-                      key={acc.email}
-                      type="button"
-                      onClick={() => {
-                        setEmail(acc.email);
-                        handleRequestCode(acc.email);
-                      }}
-                      className="w-full flex items-center justify-between p-2 rounded-lg bg-slate-50 hover:bg-blue-50 border border-slate-200/80 hover:border-blue-300 transition-colors cursor-pointer text-left group"
-                    >
-                      <div>
-                        <div className="text-xs font-semibold text-slate-900 group-hover:text-blue-700">
-                          {acc.name}
-                        </div>
-                        <div className="text-[11px] text-slate-500">{acc.email}</div>
-                      </div>
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-white border border-slate-200 text-slate-700 group-hover:bg-blue-600 group-hover:text-white group-hover:border-blue-600 transition-colors">
-                        {acc.role}
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              </div>
             </div>
           ) : (
             /* STEP 2: Enter 6-digit Code */

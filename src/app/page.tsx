@@ -211,38 +211,6 @@ export default function GashtyarITOperationsApp() {
     }
   };
 
-  // Demo Role Switching (IT Manager vs Company Management vs Auditor)
-  const handleSwitchRoleForDemo = async (targetEmail: string) => {
-    try {
-      const reqRes = await fetch('/api/auth/request-code', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: targetEmail }),
-      });
-      const reqData = await reqRes.json();
-      const code = reqData.devCode || '123456';
-
-      const verifyRes = await fetch('/api/auth/verify-code', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-tab-token': tabToken,
-        },
-        body: JSON.stringify({
-          email: targetEmail,
-          code,
-          tabToken,
-        }),
-      });
-      const verifyData = await verifyRes.json();
-      if (verifyData.success && verifyData.user) {
-        setCurrentUser(verifyData.user);
-        fetchDashboardData();
-      }
-    } catch (err) {
-      console.error('Demo switch error:', err);
-    }
-  };
 
   // Notification Send Modal Launcher
   const openManualPushNotification = (defaults?: any) => {
@@ -306,7 +274,6 @@ export default function GashtyarITOperationsApp() {
         user={currentUser}
         unreadCount={metrics.activeIncidentsCount || 2}
         onLogout={handleLogout}
-        onSwitchRoleForDemo={handleSwitchRoleForDemo}
         onOpenNotifications={() => handleTabChange('incidents')}
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}

@@ -35,7 +35,6 @@ interface HeaderProps {
   user: UserProfile;
   unreadCount?: number;
   onLogout: () => void;
-  onSwitchRoleForDemo?: (targetEmail: string) => void;
   onOpenNotifications?: () => void;
   searchQuery?: string;
   onSearchChange?: (q: string) => void;
@@ -47,7 +46,6 @@ export function Header({
   user,
   unreadCount = 2,
   onLogout,
-  onSwitchRoleForDemo,
   onOpenNotifications,
   searchQuery = '',
   onSearchChange,
@@ -251,56 +249,6 @@ export function Header({
                       <span className="text-[11px] text-slate-500">{user.department}</span>
                     </div>
                   </div>
-
-                  {/* Fast Role Switch for Verification / Testing */}
-                  {onSwitchRoleForDemo && (
-                    <div className="px-4 py-2.5 border-b border-slate-100 bg-slate-50">
-                      <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">
-                        Test Role Accounts (Demo Switch)
-                      </div>
-                      <div className="grid grid-cols-3 gap-1">
-                        <button
-                          onClick={() => {
-                            setDropdownOpen(false);
-                            onSwitchRoleForDemo('it@gate2hotels.co');
-                          }}
-                          className={`px-2 py-1.5 text-[11px] rounded-lg font-bold border text-center transition-colors cursor-pointer ${
-                            user.role === 'ADMIN'
-                              ? 'bg-[#0077C8] text-white border-[#0077C8] shadow-xs'
-                              : 'bg-white text-slate-700 hover:bg-slate-100 border-slate-200'
-                          }`}
-                        >
-                          IT Manager
-                        </button>
-                        <button
-                          onClick={() => {
-                            setDropdownOpen(false);
-                            onSwitchRoleForDemo('almaeegahin@gmail.com');
-                          }}
-                          className={`px-2 py-1.5 text-[11px] rounded-lg font-bold border text-center transition-colors cursor-pointer ${
-                            user.role === 'MANAGER'
-                              ? 'bg-amber-600 text-white border-amber-600 shadow-xs'
-                              : 'bg-white text-slate-700 hover:bg-slate-100 border-slate-200'
-                          }`}
-                        >
-                          Manager Test
-                        </button>
-                        <button
-                          onClick={() => {
-                            setDropdownOpen(false);
-                            onSwitchRoleForDemo('auditor@gashtyar.com');
-                          }}
-                          className={`px-2 py-1.5 text-[11px] rounded-lg font-bold border text-center transition-colors cursor-pointer ${
-                            user.role === 'VIEWER'
-                              ? 'bg-slate-700 text-white border-slate-700 shadow-xs'
-                              : 'bg-white text-slate-700 hover:bg-slate-100 border-slate-200'
-                          }`}
-                        >
-                          Auditor
-                        </button>
-                      </div>
-                    </div>
-                  )}
 
                   {/* Sign Out */}
                   <div className="p-1">
