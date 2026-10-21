@@ -8,7 +8,10 @@ import { nowUtc } from './time';
  * No mock systems, mock incidents, mock updates, or mock comments are created,
  * allowing the user to configure all systems and updates from scratch.
  */
+let isSeeded = false;
+
 export async function seedDatabase() {
+  if (isSeeded) return;
   await initDb();
   const db = getDb();
   const now = nowUtc();
@@ -64,4 +67,6 @@ export async function seedDatabase() {
       });
     }
   }
+
+  isSeeded = true;
 }

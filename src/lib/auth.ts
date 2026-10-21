@@ -139,9 +139,12 @@ export async function createVerificationChallenge(
   });
 
   // 4. Send email (or log to dev outbox)
-  // Dynamic import or call email delivery
-  const { sendVerificationEmail } = await import('./email');
-  await sendVerificationEmail(normalizedEmail, code, userResult.rows[0].name as string);
+  try {
+    const { sendVerificationEmail } = await import('./email');
+    await sendVerificationEmail(normalizedEmail, code, userResult.rows[0].name as string);
+  } catch (emailErr) {
+    console.error('Verification email delivery error:', emailErr);
+  }
 
   return {
     success: true,

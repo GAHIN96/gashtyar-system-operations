@@ -42,9 +42,10 @@ export async function POST(req: NextRequest) {
       message: `A fresh, unique 6-digit verification code has been dispatched to ${email.trim()}. Please check your inbox to open the system.`,
     });
   } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
     console.error('Request code error:', err);
     return NextResponse.json(
-      { error: 'Internal server error processing verification request.' },
+      { error: `Internal error processing verification request: ${message}` },
       { status: 500 }
     );
   }

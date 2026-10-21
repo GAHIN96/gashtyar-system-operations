@@ -2,19 +2,24 @@ import { createClient, Client } from '@libsql/client';
 import path from 'path';
 import fs from 'fs';
 
+const DEFAULT_TURSO_URL = 'libsql://gashtyar-db-gahin.aws-ap-south-1.turso.io';
+const DEFAULT_TURSO_TOKEN = 'eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3OTI1ODUxNDMsImlkIjoiMDFhMTVlNjUtZTgwMS03NTVlLThlZmYtYzIxMWI2YjhiY2E0Iiwia2lkIjoiWVZFN21WU3pXLUNDc0t0S2hjanVkT2JxM3lwNUkwUlJuTjBEUGR1T3RjQSIsInJpZCI6IjBhNzNjY2FiLWIzYzAtNGNhYS04M2VmLTQ0MTQ3MzdmYmNhMCJ9.oA-5cQGU8fo0bj-TckLo5PiG0hUUBzoh2kkNqlxbRfzKTBuGnry7z1mWMe1t18m2_OVWmHth-R6gxEHbp1FmDg';
+
 function getDatabaseConfig(): { url: string; authToken?: string } {
   const remoteUrl =
     process.env.TURSO_DATABASE_URL ||
     process.env.DATABASE_URL ||
     process.env.TURSO_URL ||
     process.env.LIBSQL_DATABASE_URL ||
-    process.env.LIBSQL_URL;
+    process.env.LIBSQL_URL ||
+    DEFAULT_TURSO_URL;
 
   const authToken =
     process.env.TURSO_AUTH_TOKEN ||
     process.env.DATABASE_AUTH_TOKEN ||
     process.env.TURSO_TOKEN ||
-    process.env.LIBSQL_AUTH_TOKEN;
+    process.env.LIBSQL_AUTH_TOKEN ||
+    DEFAULT_TURSO_TOKEN;
 
   if (remoteUrl && (remoteUrl.startsWith('libsql://') || remoteUrl.startsWith('https://') || remoteUrl.startsWith('http://'))) {
     return {
@@ -86,12 +91,19 @@ export function getDb(): Client {
   return clientInstance;
 }
 
-export async function initDb() {
-  const db = getDb();
+let initDbPromise: Promise<void> | null = null;
 
-  // Execute schema creation in a single transaction or sequence
-  await db.executeMultiple(`
-    PRAGMA foreign_keys = ON;
+export async function initDb() {
+  if (initDbPromise) {
+    return initDbPromise;
+  }
+
+  initDbPromise = (async () => {
+    const db = getDb();
+
+    // Execute schema creation in a single transaction or sequence
+    await db.executeMultiple(`
+      PRAGMA foreign_keys = ON;
 
     -- Users & invitations
     CREATE TABLE IF NOT EXISTS users (
@@ -365,7 +377,13 @@ export async function initDb() {
   `);
 
   // Run safe column migrations for complete system upgrade
-  await runSafeMigrations(db);
+    await runSafeMigrations(db);
+  })().catch((err) => {
+    initDbPromise = null;
+    throw err;
+  });
+
+  return initDbPromise;
 }
 
 /**
