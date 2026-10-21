@@ -27,17 +27,14 @@ export function GashtyarLogo({
 
       {showText && (
         <div className="flex flex-col justify-center">
-          <div className="flex items-center gap-1.5">
-            <span className="text-lg font-black tracking-tight text-slate-900 leading-none">
-              Gashtyar
-            </span>
-            <span className="text-xs font-bold uppercase tracking-wider text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-200/60 leading-none">
-              IT Operations
-            </span>
-          </div>
-          <span className="text-[11px] font-medium text-slate-500 leading-none mt-1">
-            {subtitle}
+          <span className="text-lg font-black tracking-tight text-slate-900 leading-none">
+            Gashtyar
           </span>
+          {subtitle && (
+            <span className="text-[11px] font-semibold text-slate-500 leading-none mt-1">
+              {subtitle}
+            </span>
+          )}
         </div>
       )}
     </div>
