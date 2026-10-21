@@ -20,6 +20,7 @@ import {
   FileText,
   Sliders,
   Check,
+  Trash2,
 } from 'lucide-react';
 import { formatBaghdad, formatRelative } from '@/lib/time';
 
@@ -73,6 +74,8 @@ export function AdminUsersTab({ isAdmin = false }: SettingsTabProps) {
   const [smtpTesting, setSmtpTesting] = useState(false);
   const [smtpSaving, setSmtpSaving] = useState(false);
   const [smtpFeedback, setSmtpFeedback] = useState<{ success: boolean; message: string } | null>(null);
+  const [testRecipientEmail, setTestRecipientEmail] = useState('');
+  const [smtpTestSendingEmail, setSmtpTestSendingEmail] = useState(false);
 
   const fetchData = async () => {
     setLoading(true);
@@ -177,9 +180,38 @@ export function AdminUsersTab({ isAdmin = false }: SettingsTabProps) {
     }
   };
 
-  const handleTestSmtp = async () => {
+  const handleDeleteUser = async (user: any) => {
     if (!isAdmin) return;
-    setSmtpTesting(true);
+    const confirmText = `Are you sure you want to permanently delete user "${user.name}" (${user.email})? This action cannot be undone.`;
+    if (!confirm(confirmText)) return;
+
+    try {
+      const res = await fetch(`/api/users?id=${encodeURIComponent(user.id)}`, {
+        method: 'DELETE',
+      });
+      if (res.ok) {
+        fetchData();
+      } else {
+        const data = await res.json();
+        alert(data.error || 'Failed to delete user.');
+      }
+    } catch (err) {
+      console.error('Error deleting user:', err);
+      alert('Error deleting user.');
+    }
+  };
+
+  const handleTestSmtp = async (withLiveEmail = false) => {
+    if (!isAdmin) return;
+    if (withLiveEmail) {
+      if (!testRecipientEmail.trim()) {
+        setSmtpFeedback({ success: false, message: 'Please enter a test recipient email address.' });
+        return;
+      }
+      setSmtpTestSendingEmail(true);
+    } else {
+      setSmtpTesting(true);
+    }
     setSmtpFeedback(null);
     try {
       const res = await fetch('/api/settings', {
@@ -190,14 +222,16 @@ export function AdminUsersTab({ isAdmin = false }: SettingsTabProps) {
           port: Number(smtpPort),
           user: smtpUser.trim(),
           pass: smtpPass,
+          from: smtpFrom.trim(),
           secure: smtpSecure,
           testOnly: true,
+          testRecipient: withLiveEmail ? testRecipientEmail.trim() : undefined,
         }),
       });
 
       const data = await res.json();
       if (res.ok && data.success) {
-        setSmtpFeedback({ success: true, message: 'SMTP connection verified successfully!' });
+        setSmtpFeedback({ success: true, message: data.message || 'SMTP connection verified successfully!' });
       } else {
         setSmtpFeedback({ success: false, message: data.error || 'SMTP verification failed.' });
       }
@@ -205,6 +239,7 @@ export function AdminUsersTab({ isAdmin = false }: SettingsTabProps) {
       setSmtpFeedback({ success: false, message: 'Connection error while testing SMTP.' });
     } finally {
       setSmtpTesting(false);
+      setSmtpTestSendingEmail(false);
     }
   };
 
@@ -468,16 +503,25 @@ export function AdminUsersTab({ isAdmin = false }: SettingsTabProps) {
                     </td>
                     {isAdmin && (
                       <td className="px-5 py-3.5 text-right">
-                        <button
-                          onClick={() => handleToggleStatus(u)}
-                          className={`px-2.5 py-1 rounded-lg text-xs font-semibold cursor-pointer border transition-colors ${
-                            u.status === 'ACTIVE'
-                              ? 'bg-white border-red-200 text-red-600 hover:bg-red-50'
-                              : 'bg-white border-green-200 text-green-600 hover:bg-green-50'
-                          }`}
-                        >
-                          {u.status === 'ACTIVE' ? 'Deactivate' : 'Reactivate'}
-                        </button>
+                        <div className="flex items-center justify-end gap-1.5">
+                          <button
+                            onClick={() => handleToggleStatus(u)}
+                            className={`px-2.5 py-1 rounded-lg text-xs font-semibold cursor-pointer border transition-colors ${
+                              u.status === 'ACTIVE'
+                                ? 'bg-white border-amber-200 text-amber-700 hover:bg-amber-50'
+                                : 'bg-white border-green-200 text-green-600 hover:bg-green-50'
+                            }`}
+                          >
+                            {u.status === 'ACTIVE' ? 'Deactivate' : 'Reactivate'}
+                          </button>
+                          <button
+                            onClick={() => handleDeleteUser(u)}
+                            title={`Delete ${u.name}`}
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 border border-transparent hover:border-red-200 transition-colors cursor-pointer"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                       </td>
                     )}
                   </tr>
@@ -582,20 +626,49 @@ export function AdminUsersTab({ isAdmin = false }: SettingsTabProps) {
             </div>
 
             {isAdmin && (
+              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2.5">
+                <label className="block text-[11px] font-bold text-slate-700 uppercase">
+                  Live Test Email Delivery (Test What Users Receive)
+                </label>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <input
+                    type="email"
+                    value={testRecipientEmail}
+                    onChange={(e) => setTestRecipientEmail(e.target.value)}
+                    placeholder="Enter your email to receive a live test message..."
+                    className="flex-1 px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs outline-none focus:border-blue-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleTestSmtp(true)}
+                    disabled={smtpTestSendingEmail || smtpTesting}
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-colors shadow-xs disabled:opacity-50"
+                  >
+                    <Send className="w-3.5 h-3.5" />
+                    <span>{smtpTestSendingEmail ? 'Sending...' : 'Send Live Test Email'}</span>
+                  </button>
+                </div>
+                <p className="text-[11px] text-slate-500">
+                  Sends an actual branded HTML test email to this address to verify mailbox reception and spam filter compatibility.
+                </p>
+              </div>
+            )}
+
+            {isAdmin && (
               <div className="pt-2 flex items-center justify-between">
                 <button
                   type="button"
-                  onClick={handleTestSmtp}
-                  disabled={smtpTesting}
-                  className="px-3.5 py-2 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 rounded-xl text-xs font-bold cursor-pointer transition-colors"
+                  onClick={() => handleTestSmtp(false)}
+                  disabled={smtpTesting || smtpTestSendingEmail}
+                  className="px-3.5 py-2 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 rounded-xl text-xs font-bold cursor-pointer transition-colors disabled:opacity-50"
                 >
-                  {smtpTesting ? 'Testing...' : 'Test Connection'}
+                  {smtpTesting ? 'Testing...' : 'Verify Connection Only'}
                 </button>
 
                 <button
                   type="submit"
                   disabled={smtpSaving}
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-xs cursor-pointer transition-colors"
+                  className="px-4 py-2 bg-slate-900 hover:bg-black text-white rounded-xl text-xs font-bold shadow-xs cursor-pointer transition-colors"
                 >
                   {smtpSaving ? 'Saving...' : 'Save SMTP Settings'}
                 </button>

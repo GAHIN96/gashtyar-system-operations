@@ -55,7 +55,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const auth = await getAuthenticatedUser(req, 'MANAGER');
+  const auth = await getAuthenticatedUser(req, 'ADMIN');
   if (auth.errorResponse) return auth.errorResponse;
 
   try {
@@ -139,7 +139,7 @@ export async function POST(req: NextRequest) {
 }
 
 export async function PUT(req: NextRequest) {
-  const auth = await getAuthenticatedUser(req, 'MANAGER');
+  const auth = await getAuthenticatedUser(req, 'ADMIN');
   if (auth.errorResponse) return auth.errorResponse;
 
   try {

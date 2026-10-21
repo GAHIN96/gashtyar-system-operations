@@ -3,6 +3,7 @@ import { getAuthenticatedUser } from '@/lib/api-auth';
 import { getDb, initDb } from '@/lib/db';
 import { nowUtc } from '@/lib/time';
 import { logAudit } from '@/lib/auth';
+import { getTransporter, getSmtpConfig, buildHtmlTemplate } from '@/lib/email';
 import crypto from 'crypto';
 
 export async function GET(req: NextRequest) {
@@ -77,6 +78,39 @@ export async function POST(req: NextRequest) {
       `Invited ${name} (${normalizedEmail}) with role ${role}`
     );
 
+    // Send invitation email if SMTP is configured
+    try {
+      const transporter = await getTransporter();
+      const smtpConfig = await getSmtpConfig();
+      if (transporter && smtpConfig.isConfigured) {
+        const appBaseUrl = process.env.APP_BASE_URL || 'http://localhost:3000';
+        const roleLabel =
+          role === 'ADMIN'
+            ? 'IT Manager (Super Admin)'
+            : role === 'MANAGER'
+            ? 'Manager (View & Comment)'
+            : 'Auditor (Viewer)';
+
+        const html = buildHtmlTemplate({
+          title: 'Welcome to Gashtyar IT Operations',
+          preheader: `You have been granted access as ${roleLabel}`,
+          summary: `Hello ${name.trim()},\n\nYou have been granted access to the Gashtyar Travel & Tourism IT Operations and Infrastructure Monitoring Portal by ${auth.user!.name}.\n\nYour assigned role is: ${roleLabel} (${department || 'Management'}).\n\nYou can access the portal and sign in securely with 6-digit email verification anytime.`,
+          actionUrl: appBaseUrl,
+          actionButtonText: 'Access Gashtyar Operations Portal',
+        });
+
+        await transporter.sendMail({
+          from: smtpConfig.from,
+          to: normalizedEmail,
+          subject: `[Gashtyar IT] You have been invited to Gashtyar Operations Portal`,
+          html,
+          text: `Hello ${name},\n\nYou have been invited to Gashtyar IT Operations Portal as ${roleLabel}.\nAccess the portal: ${appBaseUrl}`,
+        });
+      }
+    } catch (mailErr) {
+      console.warn('Could not send invitation email:', mailErr);
+    }
+
     return NextResponse.json({ success: true, id });
   } catch (err: unknown) {
     console.error('Invite user error:', err);
@@ -116,7 +150,6 @@ export async function PUT(req: NextRequest) {
     });
 
     // Immediate Revocation:
-    // "Revoking a user must immediately revoke their access."
     // If status changed to INACTIVE, immediately delete all active sessions for this user!
     if (status === 'INACTIVE') {
       await db.execute({ sql: `DELETE FROM sessions WHERE user_id = ?`, args: [id] });
@@ -137,3 +170,51 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json({ error: 'Failed to update user.' }, { status: 500 });
   }
 }
+
+export async function DELETE(req: NextRequest) {
+  const auth = await getAuthenticatedUser(req, 'ADMIN');
+  if (auth.errorResponse) return auth.errorResponse;
+
+  try {
+    const id = req.nextUrl.searchParams.get('id');
+    if (!id) {
+      return NextResponse.json({ error: 'User ID is required.' }, { status: 400 });
+    }
+
+    if (id === auth.user!.id) {
+      return NextResponse.json({ error: 'You cannot delete your own administrative account.' }, { status: 400 });
+    }
+
+    const db = getDb();
+    const userRes = await db.execute({
+      sql: `SELECT id, name, email FROM users WHERE id = ?`,
+      args: [id],
+    });
+
+    if (userRes.rows.length === 0) {
+      return NextResponse.json({ error: 'User not found.' }, { status: 404 });
+    }
+
+    const targetUser = userRes.rows[0];
+
+    // Delete user sessions
+    await db.execute({ sql: `DELETE FROM sessions WHERE user_id = ?`, args: [id] });
+    // Delete user record
+    await db.execute({ sql: `DELETE FROM users WHERE id = ?`, args: [id] });
+
+    await logAudit(
+      auth.user!.id,
+      auth.user!.email,
+      'DELETE_USER',
+      'USER',
+      id,
+      `Permanently deleted user account "${targetUser.name}" (${targetUser.email})`
+    );
+
+    return NextResponse.json({ success: true });
+  } catch (err: unknown) {
+    console.error('Delete user error:', err);
+    return NextResponse.json({ error: 'Failed to delete user.' }, { status: 500 });
+  }
+}
+

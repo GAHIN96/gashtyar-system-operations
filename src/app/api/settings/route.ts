@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthenticatedUser } from '@/lib/api-auth';
 import { getDb, initDb } from '@/lib/db';
-import { getSmtpConfig } from '@/lib/email';
+import { getSmtpConfig, buildHtmlTemplate } from '@/lib/email';
 import { nowUtc } from '@/lib/time';
 import { logAudit } from '@/lib/auth';
 import nodemailer from 'nodemailer';
@@ -66,12 +66,12 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { host, port, user, pass, from, secure, testOnly, companyName, companyHq, itContact } = body;
+    const { host, port, user, pass, from, secure, testOnly, testRecipient, companyName, companyHq, itContact } = body;
 
     await initDb();
     const db = getDb();
 
-    // If test requested, verify credentials with nodemailer
+    // If test requested, verify credentials with nodemailer and optionally send a test message
     if (testOnly) {
       if (!host || !user || !pass) {
         return NextResponse.json({ error: 'Host, user, and password are required to test.' }, { status: 400 });
@@ -86,6 +86,32 @@ export async function POST(req: NextRequest) {
         });
 
         await testTransport.verify();
+
+        if (testRecipient && typeof testRecipient === 'string' && testRecipient.trim()) {
+          const appBaseUrl = process.env.APP_BASE_URL || 'https://monitor.gashtyartravel.com';
+          const html = buildHtmlTemplate({
+            title: 'Gashtyar IT Operations — SMTP Test Email',
+            preheader: 'Your outbound email delivery is fully verified and functional',
+            summary: `Hello,\n\nThis is a real test email dispatched from your Gashtyar IT Operations Portal (${appBaseUrl}).\n\nOutbound SMTP settings are properly configured and operational. Users and managers will now reliably receive login verification codes and system incident notifications.`,
+            actionUrl: appBaseUrl,
+            actionButtonText: 'Access Gashtyar Operations Portal',
+            isVerificationCode: false,
+          });
+
+          await testTransport.sendMail({
+            from: from || `Gashtyar IT Operations <${user}>`,
+            to: testRecipient.trim(),
+            subject: '[Gashtyar IT] Outbound SMTP Email Test Successful',
+            html,
+            text: `Gashtyar IT Operations - Test Email\n\nYour outbound SMTP configuration is operational.\nPortal URL: ${appBaseUrl}`,
+          });
+
+          return NextResponse.json({
+            success: true,
+            message: `SMTP connected & test email delivered successfully to ${testRecipient.trim()}!`,
+          });
+        }
+
         return NextResponse.json({ success: true, message: 'SMTP connection verified successfully!' });
       } catch (testErr: unknown) {
         const message = testErr instanceof Error ? testErr.message : String(testErr);

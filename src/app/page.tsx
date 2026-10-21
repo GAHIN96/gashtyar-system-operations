@@ -285,7 +285,7 @@ export default function GashtyarITOperationsApp() {
   }
 
   const isAdmin = currentUser.role === 'ADMIN';
-  const canManageSystems = currentUser.role === 'ADMIN' || currentUser.role === 'MANAGER';
+  const canManageSystems = currentUser.role === 'ADMIN';
 
   // Filtered systems when search query is entered
   const filteredSystems = systems.filter((s) => {
