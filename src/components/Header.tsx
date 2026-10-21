@@ -18,6 +18,7 @@ import {
   Mail,
   Settings,
   Lock,
+  MessagesSquare,
 } from 'lucide-react';
 import { NavTabId } from './NavTabs';
 
@@ -96,6 +97,7 @@ export function Header({
   ];
 
   const secondaryNavTabs: { id: NavTabId; label: string; icon: any }[] = [
+    { id: 'discussion', label: 'Management Discussions', icon: MessagesSquare },
     { id: 'servers', label: 'Servers & Backups', icon: Server },
     { id: 'security', label: 'Cybersecurity', icon: ShieldCheck },
     { id: 'notifications', label: 'Email Notifications', icon: Mail },
@@ -111,11 +113,12 @@ export function Header({
             <GashtyarLogo subtitle="IT OPERATIONS" />
           </div>
 
-          {/* 2. Center: Horizontal Navigation Tabs (Exactly matching reference) */}
+          {/* 2. Center: Horizontal Navigation Tabs (Single unified navbar) */}
           <nav className="hidden md:flex items-center space-x-1 lg:space-x-2 h-16">
             {primaryNavTabs.map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
+              const hasBadge = tab.id === 'incidents' && typeof unreadCount === 'number' && unreadCount > 0;
 
               return (
                 <button
@@ -133,6 +136,11 @@ export function Header({
                     }`}
                   />
                   <span>{tab.label}</span>
+                  {hasBadge && (
+                    <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold text-white bg-red-500">
+                      {unreadCount}
+                    </span>
+                  )}
                 </button>
               );
             })}

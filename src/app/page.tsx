@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { Header, UserProfile } from '@/components/Header';
-import { NavTabs, NavTabId } from '@/components/NavTabs';
+import { NavTabId } from '@/components/NavTabs';
 import { HeroBanner } from '@/components/HeroBanner';
 import { MetricsRow, DashboardMetrics } from '@/components/MetricsRow';
 import { QuickActions } from '@/components/QuickActions';
@@ -314,17 +314,7 @@ export default function GashtyarITOperationsApp() {
         onTabChange={handleTabChange}
       />
 
-      {/* 2. Secondary Sections Navigation Tabs for deeper modules */}
-      {activeTab !== 'dashboard' && (
-        <NavTabs
-          activeTab={activeTab}
-          onTabChange={handleTabChange}
-          isAdmin={isAdmin}
-          activeIncidentsCount={metrics.activeIncidentsCount}
-        />
-      )}
-
-      {/* 3. Main Workspace Container — Full Available Screen Width */}
+      {/* Main Workspace Container — Full Available Screen Width */}
       <main className="flex-1 w-full max-w-[1720px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* TAB 1: OVERVIEW DASHBOARD (Identical to Visual Reference) */}
         {activeTab === 'dashboard' && (
