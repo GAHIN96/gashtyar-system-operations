@@ -1,0 +1,97 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --bg-page: #f8fafc;
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-muted: #94a3b8;
+    --border-subtle: #e2e8f0;
+
+    /* Official Gashtyar Brand Logo Palette */
+    --gashtyar-blue: #0077C8;
+    --gashtyar-blue-hover: #0060A8;
+    --gashtyar-blue-light: #EBF5FB;
+    --gashtyar-blue-border: #BAE0F7;
+
+    --gashtyar-red: #EA2839;
+    --gashtyar-red-hover: #D21B2B;
+    --gashtyar-red-light: #FEF2F2;
+    --gashtyar-red-border: #FECACA;
+
+    --gashtyar-navy: #0A192F;
+    --gashtyar-navy-card: #0F2038;
+
+    --status-green: #10B981;
+    --status-amber: #F59E0B;
+    --status-red: #EA2839;
+  }
+
+  * {
+    font-family: var(--font-outfit), 'Outfit', sans-serif !important;
+  }
+
+  body {
+    background-color: var(--bg-page);
+    color: var(--text-primary);
+    font-family: var(--font-outfit), 'Outfit', sans-serif !important;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #0077C8;
+}
+
+/* Gashtyar Brand Button Utilities */
+.btn-gashtyar-primary {
+  background-color: #0077C8;
+  color: #ffffff;
+  transition: all 0.15s ease-in-out;
+}
+.btn-gashtyar-primary:hover {
+  background-color: #0060A8;
+  box-shadow: 0 4px 12px rgba(0, 119, 200, 0.25);
+}
+
+.btn-gashtyar-accent {
+  background-color: #EA2839;
+  color: #ffffff;
+  transition: all 0.15s ease-in-out;
+}
+.btn-gashtyar-accent:hover {
+  background-color: #D21B2B;
+  box-shadow: 0 4px 12px rgba(234, 40, 57, 0.25);
+}
+
+/* Smooth modal animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.98); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.animate-modal {
+  animation: fadeIn 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+.animate-drawer {
+  animation: slideInRight 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}

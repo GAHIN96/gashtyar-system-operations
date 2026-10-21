@@ -1,0 +1,3 @@
+# Gashtyar IT Operations Management Portal - Internal Corporate Use Only
+User-agent: *
+Disallow: /
