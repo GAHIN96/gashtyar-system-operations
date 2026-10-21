@@ -195,10 +195,13 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: 'User not found.' }, { status: 404 });
     }
 
-    const targetUser = userRes.rows[0];
-
-    // Delete user sessions
+    // Clean up foreign references first so foreign key constraints succeed
     await db.execute({ sql: `DELETE FROM sessions WHERE user_id = ?`, args: [id] });
+    await db.execute({ sql: `DELETE FROM notification_recipients WHERE user_id = ?`, args: [id] });
+    await db.execute({ sql: `DELETE FROM comment_mentions WHERE user_id = ?`, args: [id] });
+    await db.execute({ sql: `DELETE FROM comments WHERE author_id = ?`, args: [id] });
+    await db.execute({ sql: `DELETE FROM incident_timeline WHERE author_id = ?`, args: [id] });
+
     // Delete user record
     await db.execute({ sql: `DELETE FROM users WHERE id = ?`, args: [id] });
 
