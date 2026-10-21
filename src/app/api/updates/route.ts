@@ -129,13 +129,24 @@ export async function POST(req: NextRequest) {
       ],
     });
 
-    // Link systems
+    // Link systems safely (only insert if system exists in systems table)
     if (system_ids && Array.isArray(system_ids)) {
       for (const sysId of system_ids) {
-        await db.execute({
-          sql: `INSERT INTO update_systems (update_id, system_id) VALUES (?, ?)`,
-          args: [updateId, sysId],
-        });
+        if (!sysId || typeof sysId !== 'string') continue;
+        try {
+          const sysExists = await db.execute({
+            sql: `SELECT id FROM systems WHERE id = ?`,
+            args: [sysId],
+          });
+          if (sysExists.rows.length > 0) {
+            await db.execute({
+              sql: `INSERT INTO update_systems (update_id, system_id) VALUES (?, ?)`,
+              args: [updateId, sysId],
+            });
+          }
+        } catch (err) {
+          console.warn('Could not link system to update:', err);
+        }
       }
     }
 

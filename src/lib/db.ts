@@ -204,6 +204,12 @@ export async function initDb() {
       target_date TEXT,
       release_date TEXT,
       version TEXT,
+      technical_changes TEXT DEFAULT '',
+      deployment_env TEXT DEFAULT 'Production',
+      published_by_name TEXT,
+      published_at TEXT,
+      revision_count INTEGER DEFAULT 1,
+      attachments TEXT DEFAULT '[]',
       created_by TEXT NOT NULL,
       created_at TEXT NOT NULL,
       updated_at TEXT NOT NULL

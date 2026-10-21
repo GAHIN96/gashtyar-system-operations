@@ -30,6 +30,7 @@ interface UpdatesTabProps {
   onSendNotificationForUpdate: (update: any) => void;
   isAdmin: boolean;
   systems: { id: string; name: string }[];
+  refreshTrigger?: number;
 }
 
 export function UpdatesTab({
@@ -37,6 +38,7 @@ export function UpdatesTab({
   onSendNotificationForUpdate,
   isAdmin,
   systems,
+  refreshTrigger = 0,
 }: UpdatesTabProps) {
   const [updates, setUpdates] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -72,7 +74,7 @@ export function UpdatesTab({
 
   useEffect(() => {
     fetchUpdates();
-  }, [typeFilter, systemFilter]);
+  }, [typeFilter, systemFilter, refreshTrigger]);
 
   const fetchCommentsForUpdate = async (updateId: string) => {
     try {

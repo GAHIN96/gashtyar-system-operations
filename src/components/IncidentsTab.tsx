@@ -28,6 +28,7 @@ interface IncidentsTabProps {
   onEditIncident: (incident: any) => void;
   isAdmin: boolean;
   systems: { id: string; name: string }[];
+  refreshTrigger?: number;
 }
 
 export function IncidentsTab({
@@ -35,6 +36,7 @@ export function IncidentsTab({
   onEditIncident,
   isAdmin,
   systems,
+  refreshTrigger = 0,
 }: IncidentsTabProps) {
   const [incidents, setIncidents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -70,7 +72,7 @@ export function IncidentsTab({
 
   useEffect(() => {
     fetchIncidents();
-  }, [statusFilter, systemFilter]);
+  }, [statusFilter, systemFilter, refreshTrigger]);
 
   const loadIncidentComments = async (incId: string) => {
     try {

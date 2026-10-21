@@ -81,6 +81,8 @@ export default function GashtyarITOperationsApp() {
   const [notificationDefaults, setNotificationDefaults] = useState<any>({});
   const [systemEditModalOpen, setSystemEditModalOpen] = useState(false);
   const [editingSystem, setEditingSystem] = useState<any | null>(null);
+  const [incidentsRefreshTrigger, setIncidentsRefreshTrigger] = useState(0);
+  const [updatesRefreshTrigger, setUpdatesRefreshTrigger] = useState(0);
 
   // Handle tab change and update URL history
   const handleTabChange = (tab: NavTabId) => {
@@ -387,6 +389,7 @@ export default function GashtyarITOperationsApp() {
           <IncidentsTab
             isAdmin={isAdmin}
             systems={systems}
+            refreshTrigger={incidentsRefreshTrigger}
             onNewIncident={() => {
               setEditingIncident(null);
               setIncidentModalOpen(true);
@@ -403,6 +406,7 @@ export default function GashtyarITOperationsApp() {
           <UpdatesTab
             isAdmin={isAdmin}
             systems={systems}
+            refreshTrigger={updatesRefreshTrigger}
             onNewUpdate={() => setUpdateModalOpen(true)}
             onSendNotificationForUpdate={(upd) => {
               openManualPushNotification({
@@ -483,6 +487,7 @@ export default function GashtyarITOperationsApp() {
           onClose={() => setIncidentModalOpen(false)}
           onSuccess={() => {
             fetchDashboardData();
+            setIncidentsRefreshTrigger((prev) => prev + 1);
           }}
           incident={editingIncident}
           systems={systems}
@@ -496,6 +501,7 @@ export default function GashtyarITOperationsApp() {
           onClose={() => setUpdateModalOpen(false)}
           onSuccess={() => {
             fetchDashboardData();
+            setUpdatesRefreshTrigger((prev) => prev + 1);
           }}
           systems={systems}
           currentUser={currentUser}

@@ -130,37 +130,48 @@ export async function POST(req: NextRequest) {
 
     // Link affected systems and update system operational statuses
     for (const sysId of affected_system_ids) {
-      await db.execute({
-        sql: `INSERT INTO incident_systems (incident_id, system_id) VALUES (?, ?)`,
-        args: [incidentId, sysId],
-      });
+      if (!sysId || typeof sysId !== 'string') continue;
+      try {
+        const sysExists = await db.execute({
+          sql: `SELECT id FROM systems WHERE id = ?`,
+          args: [sysId],
+        });
+        if (sysExists.rows.length > 0) {
+          await db.execute({
+            sql: `INSERT INTO incident_systems (incident_id, system_id) VALUES (?, ?)`,
+            args: [incidentId, sysId],
+          });
 
-      const newSystemStatus = severity === 'CRITICAL' ? 'UNAVAILABLE' : 'DEGRADED';
-      const etaDisplayText = is_under_assessment
-        ? 'Under assessment'
-        : eta_date
-        ? `${eta_label || 'Estimate'}: ${eta_date}`
-        : null;
+          const newSystemStatus = severity === 'CRITICAL' ? 'UNAVAILABLE' : 'DEGRADED';
+          const etaDisplayText = is_under_assessment
+            ? 'Under assessment'
+            : eta_date
+            ? `${eta_label || 'Estimate'}: ${eta_date}`
+            : null;
 
-      await db.execute({
-        sql: `UPDATE systems SET 
-              status = ?, 
-              investigation_stage = ?,
-              eta_text = ?,
-              eta_timestamp = ?,
-              last_updated_by = ?,
-              updated_at = ?
-              WHERE id = ?`,
-        args: [
-          newSystemStatus,
-          `Active Incident (${incidentRef}): ${title}`,
-          etaDisplayText,
-          is_under_assessment ? null : eta_date || null,
-          auth.user?.name,
-          now,
-          sysId,
-        ],
-      });
+          await db.execute({
+            sql: `UPDATE systems SET 
+                  status = ?, 
+                  investigation_stage = ?,
+                  eta_text = ?,
+                  eta_timestamp = ?,
+                  last_updated_by = ?,
+                  updated_at = ?
+                  WHERE id = ?`,
+            args: [
+              newSystemStatus,
+              `Active Incident (${incidentRef}): ${title}`,
+              etaDisplayText,
+              is_under_assessment ? null : eta_date || null,
+              auth.user?.name,
+              now,
+              sysId,
+            ],
+          });
+        }
+      } catch (err) {
+        console.warn('Could not link system to incident:', err);
+      }
     }
 
     // Insert initial timeline entry
