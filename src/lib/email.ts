@@ -112,8 +112,8 @@ export function buildHtmlTemplate(params: {
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; margin: 0; padding: 24px; color: #0f172a; }
     .container { max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
     .header { background: #0f172a; padding: 24px 32px; border-bottom: 3px solid #ea580c; display: flex; align-items: center; justify-content: space-between; }
-    .brand-title { color: #ffffff; font-size: 18px; font-weight: 700; margin: 0; letter-spacing: -0.01em; }
-    .brand-sub { color: #94a3b8; font-size: 12px; margin-top: 2px; }
+    .brand-title { color: #ffffff; font-size: 20px; font-weight: 700; margin: 0; letter-spacing: -0.01em; line-height: 1.3; }
+    .brand-sub { color: #94a3b8; font-size: 13px; margin-top: 4px; font-weight: 500; }
     .content { padding: 32px; }
     .badge { display: inline-block; padding: 4px 10px; border-radius: 9999px; font-size: 12px; font-weight: 600; text-transform: uppercase; margin-bottom: 16px; }
     .badge-blue { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
@@ -137,15 +137,13 @@ export function buildHtmlTemplate(params: {
   <div class="container">
     <div class="header">
       <div>
-        <h1 class="brand-title">Gashtyar IT Operations</h1>
-        <div class="brand-sub">Management Portal & Systems Status</div>
+        <h1 class="brand-title">${params.title || 'Gashtyar IT Operations'}</h1>
+        <div class="brand-sub">${params.systemName ? `${params.systemName} &bull; Gashtyar IT Operations` : 'Gashtyar IT Operations'}</div>
       </div>
     </div>
     
     <div class="content">
       ${params.statusBadge ? `<span class="badge ${params.statusBadge.toLowerCase().includes('critical') || params.statusBadge.toLowerCase().includes('unavail') ? 'badge-red' : params.statusBadge.toLowerCase().includes('degraded') || params.statusBadge.toLowerCase().includes('investig') ? 'badge-amber' : 'badge-blue'}">${params.statusBadge}</span>` : ''}
-
-      <h2 class="system-title">${params.title}</h2>
 
       ${params.systemName || params.etaText || params.authorName ? `
         <div class="meta-box">
