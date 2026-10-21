@@ -386,11 +386,11 @@ async function runSafeMigrations(db: Client) {
 
   // 1. Systems columns
   await addCol('systems', 'logo_url', "TEXT DEFAULT ''");
-  await addCol('systems', 'hosting_env', "TEXT DEFAULT 'Cloud VPS (Frankfurt)'");
+  await addCol('systems', 'hosting_env', "TEXT DEFAULT ''");
   await addCol('systems', 'domain_names', "TEXT DEFAULT ''");
-  await addCol('systems', 'tech_stack', "TEXT DEFAULT 'Next.js, Node.js, PostgreSQL, Redis, Nginx'");
+  await addCol('systems', 'tech_stack', "TEXT DEFAULT ''");
   await addCol('systems', 'connected_integrations', "TEXT DEFAULT ''");
-  await addCol('systems', 'responsible_team', "TEXT DEFAULT 'Engineering & Operations'");
+  await addCol('systems', 'responsible_team', "TEXT DEFAULT ''");
   await addCol('systems', 'purpose', "TEXT DEFAULT ''");
   await addCol('systems', 'config_details', "TEXT DEFAULT ''");
   await addCol('systems', 'last_health_check_at', 'TEXT');
