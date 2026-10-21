@@ -55,13 +55,6 @@ export function NavTabs({
       badgeColor: 'bg-red-500',
     },
     { id: 'updates', label: 'Releases & Updates', icon: Rocket },
-    {
-      id: 'notifications',
-      label: 'Email Notifications',
-      icon: Mail,
-      badge: queuedEmailsCount > 0 ? queuedEmailsCount : undefined,
-      badgeColor: 'bg-blue-500',
-    },
     { id: 'servers', label: 'Servers & Backups', icon: HardDrive },
     { id: 'security', label: 'Cybersecurity', icon: ShieldCheck },
     {
@@ -72,7 +65,18 @@ export function NavTabs({
       badgeColor: 'bg-amber-500',
     },
     { id: 'reports', label: 'Reports', icon: FileSpreadsheet },
-    { id: 'admin', label: 'Settings', icon: Settings },
+    ...(isAdmin
+      ? [
+          {
+            id: 'notifications' as NavTabId,
+            label: 'Email Notifications',
+            icon: Mail,
+            badge: queuedEmailsCount > 0 ? queuedEmailsCount : undefined,
+            badgeColor: 'bg-blue-500',
+          },
+          { id: 'admin' as NavTabId, label: 'Settings', icon: Settings },
+        ]
+      : []),
   ];
 
   return (

@@ -98,8 +98,12 @@ export function Header({
     { id: 'discussion', label: 'Management Discussions', icon: MessagesSquare },
     { id: 'servers', label: 'Servers & Backups', icon: Server },
     { id: 'security', label: 'Cybersecurity', icon: ShieldCheck },
-    { id: 'notifications', label: 'Email Notifications', icon: Mail },
-    { id: 'admin', label: 'Settings & Users', icon: Settings },
+    ...(user.role === 'ADMIN'
+      ? [
+          { id: 'notifications' as NavTabId, label: 'Email Notifications', icon: Mail },
+          { id: 'admin' as NavTabId, label: 'Settings & Users', icon: Settings },
+        ]
+      : []),
   ];
 
   return (

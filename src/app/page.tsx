@@ -417,8 +417,8 @@ export default function GashtyarITOperationsApp() {
           />
         )}
 
-        {/* TAB 5: EMAIL NOTIFICATIONS & LOGS (Accessible to Managers in Read-Only) */}
-        {activeTab === 'notifications' && (
+        {/* TAB 5: EMAIL NOTIFICATIONS & LOGS (Only for IT Manager) */}
+        {activeTab === 'notifications' && isAdmin && (
           <EmailLogsTab
             isAdmin={isAdmin}
             onOpenNewNotification={() => openManualPushNotification()}
@@ -440,8 +440,8 @@ export default function GashtyarITOperationsApp() {
         {/* TAB 9: REPORTS */}
         {activeTab === 'reports' && <ReportsTab />}
 
-        {/* TAB 10: SETTINGS (Full admin for IT Manager, read-only for Management) */}
-        {activeTab === 'admin' && <AdminUsersTab isAdmin={isAdmin} />}
+        {/* TAB 10: SETTINGS & USERS (Only for IT Manager) */}
+        {activeTab === 'admin' && isAdmin && <AdminUsersTab isAdmin={isAdmin} />}
       </main>
 
       {/* 4. Footer — Matching Visual Reference */}
