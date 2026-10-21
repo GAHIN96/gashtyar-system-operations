@@ -355,7 +355,7 @@ export function SystemDrawer({
                     Hosting Environment
                   </div>
                   <div className="text-sm font-bold text-slate-900 mt-1">
-                    {currentSystem.hosting_env || 'AWS Cloud Frankfurt'}
+                    {currentSystem.hosting_env || 'Not specified'}
                   </div>
                 </div>
 
@@ -377,16 +377,20 @@ export function SystemDrawer({
                     Technology Stack & Architecture
                   </div>
                   <div className="text-xs font-medium text-slate-800 mt-1.5 flex flex-wrap gap-2">
-                    {(currentSystem.tech_stack || 'Node.js, PostgreSQL')
-                      .split(',')
-                      .map((tech: string, i: number) => (
-                        <span
-                          key={i}
-                          className="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 text-xs font-semibold border border-slate-200"
-                        >
-                          {tech.trim()}
-                        </span>
-                      ))}
+                    {currentSystem.tech_stack && currentSystem.tech_stack.trim() ? (
+                      currentSystem.tech_stack
+                        .split(',')
+                        .map((tech: string, i: number) => (
+                          <span
+                            key={i}
+                            className="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 text-xs font-semibold border border-slate-200"
+                          >
+                            {tech.trim()}
+                          </span>
+                        ))
+                    ) : (
+                      <span className="text-slate-400 italic text-xs">Not specified</span>
+                    )}
                   </div>
                 </div>
 
@@ -397,16 +401,20 @@ export function SystemDrawer({
                     Connected Services & Integrations
                   </div>
                   <div className="text-xs font-medium text-slate-800 mt-1.5 flex flex-wrap gap-2">
-                    {(currentSystem.connected_integrations || 'Internal Core')
-                      .split(',')
-                      .map((item: string, i: number) => (
-                        <span
-                          key={i}
-                          className="px-2.5 py-1 rounded-lg bg-blue-50 text-blue-800 text-xs font-semibold border border-blue-200"
-                        >
-                          {item.trim()}
-                        </span>
-                      ))}
+                    {currentSystem.connected_integrations && currentSystem.connected_integrations.trim() ? (
+                      currentSystem.connected_integrations
+                        .split(',')
+                        .map((item: string, i: number) => (
+                          <span
+                            key={i}
+                            className="px-2.5 py-1 rounded-lg bg-blue-50 text-blue-800 text-xs font-semibold border border-blue-200"
+                          >
+                            {item.trim()}
+                          </span>
+                        ))
+                    ) : (
+                      <span className="text-slate-400 italic text-xs">None registered</span>
+                    )}
                   </div>
                 </div>
               </div>
@@ -429,7 +437,7 @@ export function SystemDrawer({
                 </div>
 
                 <pre className="p-4 bg-slate-900 text-slate-100 font-mono text-xs rounded-xl overflow-x-auto leading-relaxed border border-slate-800">
-                  {currentSystem.config_details || '{\n  "status": "Nominal",\n  "monitoring": "Active"\n}'}
+                  {currentSystem.config_details || '// No configuration parameters specified for this system.'}
                 </pre>
               </div>
             </div>

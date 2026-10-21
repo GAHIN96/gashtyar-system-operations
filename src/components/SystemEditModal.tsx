@@ -12,6 +12,10 @@ import {
   RefreshCw,
   Image as ImageIcon,
   CheckCircle2,
+  Globe,
+  Cpu,
+  Layers,
+  FileCode,
 } from 'lucide-react';
 
 interface SystemEditModalProps {
@@ -37,6 +41,13 @@ export function SystemEditModal({
   const [status, setStatus] = useState('OPERATIONAL');
   const [sortOrder, setSortOrder] = useState('1');
   const [logoUrl, setLogoUrl] = useState('');
+  const [hostingEnv, setHostingEnv] = useState('');
+  const [domainNames, setDomainNames] = useState('');
+  const [techStack, setTechStack] = useState('');
+  const [connectedIntegrations, setConnectedIntegrations] = useState('');
+  const [configDetails, setConfigDetails] = useState('');
+  const [responsibleTeam, setResponsibleTeam] = useState('');
+  const [healthCheckType, setHealthCheckType] = useState('Manual Status Verification');
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [logoUploadError, setLogoUploadError] = useState<string | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
@@ -56,6 +67,13 @@ export function SystemEditModal({
       setStatus(system.status || 'OPERATIONAL');
       setSortOrder(String(system.sort_order || 1));
       setLogoUrl(system.logo_url || '');
+      setHostingEnv(system.hosting_env || '');
+      setDomainNames(system.domain_names || '');
+      setTechStack(system.tech_stack || '');
+      setConnectedIntegrations(system.connected_integrations || '');
+      setConfigDetails(system.config_details || '');
+      setResponsibleTeam(system.responsible_team || '');
+      setHealthCheckType(system.health_check_type || 'Manual Status Verification');
     } else {
       setName('');
       setCategory('Booking Engine');
@@ -65,6 +83,13 @@ export function SystemEditModal({
       setStatus('OPERATIONAL');
       setSortOrder('10');
       setLogoUrl('');
+      setHostingEnv('');
+      setDomainNames('');
+      setTechStack('');
+      setConnectedIntegrations('');
+      setConfigDetails('');
+      setResponsibleTeam('');
+      setHealthCheckType('Manual Status Verification');
     }
     setError(null);
     setLogoUploadError(null);
@@ -165,6 +190,13 @@ export function SystemEditModal({
       status,
       sort_order: Number(sortOrder) || 1,
       logo_url: logoUrl,
+      hosting_env: hostingEnv.trim(),
+      domain_names: domainNames.trim(),
+      tech_stack: techStack.trim(),
+      connected_integrations: connectedIntegrations.trim(),
+      config_details: configDetails.trim(),
+      responsible_team: responsibleTeam.trim(),
+      health_check_type: healthCheckType.trim(),
     };
 
     if (isEdit) {
@@ -509,6 +541,122 @@ export function SystemEditModal({
               placeholder="e.g. High - Direct B2B reservation transactions"
               className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
+          </div>
+
+          {/* TECHNICAL & INFRASTRUCTURE INFORMATION (OPTIONAL) */}
+          <div className="pt-3 border-t border-slate-200">
+            <div className="flex items-center gap-2 mb-3">
+              <Server className="w-4 h-4 text-[#0077C8]" />
+              <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+                Technical Information (Optional)
+              </h4>
+              <span className="text-[10px] font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full border border-slate-200">
+                Admin Editable
+              </span>
+            </div>
+
+            <div className="space-y-3.5 bg-slate-50/80 p-4 rounded-xl border border-slate-200/90">
+              {/* Row 1: Hosting Environment & Domain Names */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                    Hosting Environment
+                  </label>
+                  <input
+                    type="text"
+                    value={hostingEnv}
+                    onChange={(e) => setHostingEnv(e.target.value)}
+                    placeholder="e.g. AWS Frankfurt, Cloudflare CDN"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                    Domain Names & Endpoints
+                  </label>
+                  <input
+                    type="text"
+                    value={domainNames}
+                    onChange={(e) => setDomainNames(e.target.value)}
+                    placeholder="e.g. gate2hotels.com, api.gate2hotels.com"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono"
+                  />
+                </div>
+              </div>
+
+              {/* Row 2: Technology Stack & Connected Integrations */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                    Technology Stack & Architecture
+                  </label>
+                  <input
+                    type="text"
+                    value={techStack}
+                    onChange={(e) => setTechStack(e.target.value)}
+                    placeholder="Comma-separated: React, Node.js, PostgreSQL"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                    Connected Services & Integrations
+                  </label>
+                  <input
+                    type="text"
+                    value={connectedIntegrations}
+                    onChange={(e) => setConnectedIntegrations(e.target.value)}
+                    placeholder="Comma-separated: Sabre GDS, Stripe, Amadeus"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+
+              {/* Row 3: Responsible Team / Tech Lead & Health Check Type */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                    Technical Lead / Team
+                  </label>
+                  <input
+                    type="text"
+                    value={responsibleTeam}
+                    onChange={(e) => setResponsibleTeam(e.target.value)}
+                    placeholder="e.g. Core Development Team"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                    Health Check Verification Method
+                  </label>
+                  <input
+                    type="text"
+                    value={healthCheckType}
+                    onChange={(e) => setHealthCheckType(e.target.value)}
+                    placeholder="e.g. Automated Heartbeat / Manual IT Verification"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+
+              {/* Row 4: Configuration Details & Parameters (JSON/text) */}
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                  Configuration Details & Parameters
+                </label>
+                <textarea
+                  rows={3}
+                  value={configDetails}
+                  onChange={(e) => setConfigDetails(e.target.value)}
+                  placeholder={`{\n  "cluster_nodes": 4,\n  "db_pool": 20\n}`}
+                  className="w-full p-2.5 rounded-xl border border-slate-300 text-xs font-mono text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 leading-relaxed"
+                />
+              </div>
+            </div>
           </div>
 
           <div className="flex items-center justify-between pt-4 border-t border-slate-100">
