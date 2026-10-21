@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthenticatedUser } from '@/lib/api-auth';
 import { getDb, initDb } from '@/lib/db';
-import { getSmtpConfig, buildHtmlTemplate } from '@/lib/email';
+import { getSmtpConfig, buildHtmlTemplate, getAppBaseUrl } from '@/lib/email';
 import { nowUtc } from '@/lib/time';
 import { logAudit } from '@/lib/auth';
 import nodemailer from 'nodemailer';
@@ -88,7 +88,7 @@ export async function POST(req: NextRequest) {
         await testTransport.verify();
 
         if (testRecipient && typeof testRecipient === 'string' && testRecipient.trim()) {
-          const appBaseUrl = process.env.APP_BASE_URL || 'https://monitor.gashtyartravel.com';
+          const appBaseUrl = getAppBaseUrl();
           const html = buildHtmlTemplate({
             title: 'Gashtyar IT Operations — SMTP Test Email',
             preheader: 'Your outbound email delivery is fully verified and functional',

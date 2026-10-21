@@ -50,6 +50,22 @@ export async function getSmtpConfig() {
 }
 
 /**
+ * Resolves the public application URL for transactional and notification emails.
+ * Always defaults to the production domain https://monitor.gashtyartravel.com.
+ */
+export function getAppBaseUrl(): string {
+  const envUrl =
+    process.env.APP_BASE_URL ||
+    (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : '') ||
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : '');
+
+  if (envUrl && envUrl.startsWith('http')) {
+    return envUrl.replace(/\/+$/, '');
+  }
+  return 'https://monitor.gashtyartravel.com';
+}
+
+/**
  * Creates nodemailer transport if configured
  */
 export async function getTransporter() {
@@ -175,7 +191,7 @@ export function buildHtmlTemplate(params: {
  */
 export async function sendVerificationEmail(email: string, code: string, name: string) {
   const config = await getSmtpConfig();
-  const appBaseUrl = process.env.APP_BASE_URL || 'https://monitor.gashtyartravel.com';
+  const appBaseUrl = getAppBaseUrl();
   const actionUrl = `${appBaseUrl}/?email=${encodeURIComponent(email)}`;
   const recipientEmail = email.trim().toLowerCase();
 
@@ -328,7 +344,7 @@ export async function processQueueForNotification(notificationId: string, target
   const db = getDb();
   const config = await getSmtpConfig();
   const transporter = await getTransporter();
-  const appBaseUrl = process.env.APP_BASE_URL || 'http://localhost:3000';
+  const appBaseUrl = getAppBaseUrl();
   const secureActionUrl = `${appBaseUrl}/?redirect=${encodeURIComponent(targetPath)}`;
 
   // Fetch notification details

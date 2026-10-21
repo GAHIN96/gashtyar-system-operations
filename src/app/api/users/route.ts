@@ -3,7 +3,7 @@ import { getAuthenticatedUser } from '@/lib/api-auth';
 import { getDb, initDb } from '@/lib/db';
 import { nowUtc } from '@/lib/time';
 import { logAudit } from '@/lib/auth';
-import { getTransporter, getSmtpConfig, buildHtmlTemplate } from '@/lib/email';
+import { getTransporter, getSmtpConfig, buildHtmlTemplate, getAppBaseUrl } from '@/lib/email';
 import crypto from 'crypto';
 
 export async function GET(req: NextRequest) {
@@ -83,7 +83,8 @@ export async function POST(req: NextRequest) {
       const transporter = await getTransporter();
       const smtpConfig = await getSmtpConfig();
       if (transporter && smtpConfig.isConfigured) {
-        const appBaseUrl = process.env.APP_BASE_URL || 'http://localhost:3000';
+        const appBaseUrl = getAppBaseUrl();
+        const inviteActionUrl = `${appBaseUrl}/?email=${encodeURIComponent(normalizedEmail)}`;
         const roleLabel =
           role === 'ADMIN'
             ? 'IT Manager (Super Admin)'
@@ -95,16 +96,16 @@ export async function POST(req: NextRequest) {
           title: 'Welcome to Gashtyar IT Operations',
           preheader: `You have been granted access as ${roleLabel}`,
           summary: `Hello ${name.trim()},\n\nYou have been granted access to the Gashtyar Travel & Tourism IT Operations and Infrastructure Monitoring Portal by ${auth.user!.name}.\n\nYour assigned role is: ${roleLabel} (${department || 'Management'}).\n\nYou can access the portal and sign in securely with 6-digit email verification anytime.`,
-          actionUrl: appBaseUrl,
+          actionUrl: inviteActionUrl,
           actionButtonText: 'Access Gashtyar Operations Portal',
         });
 
         await transporter.sendMail({
           from: smtpConfig.from,
           to: normalizedEmail,
-          subject: `[Gashtyar IT] You have been invited to Gashtyar Operations Portal`,
+          subject: `You have been invited to Gashtyar Operations Portal`,
           html,
-          text: `Hello ${name},\n\nYou have been invited to Gashtyar IT Operations Portal as ${roleLabel}.\nAccess the portal: ${appBaseUrl}`,
+          text: `Hello ${name},\n\nYou have been invited to Gashtyar IT Operations Portal as ${roleLabel}.\nAccess the portal: ${inviteActionUrl}`,
         });
       }
     } catch (mailErr) {
