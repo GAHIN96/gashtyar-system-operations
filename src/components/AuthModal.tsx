@@ -120,9 +120,9 @@ export function AuthModal({ onAuthenticated, tabToken }: AuthModalProps) {
         {/* Modal Top Header */}
         <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-blue-950 p-6 text-white border-b-4 border-orange-600">
           <GashtyarLogo subtitle="Internal IT Operations & Management" />
-          <h2 className="text-xl font-bold mt-4 tracking-tight">Management Access Verification</h2>
+          <h2 className="text-xl font-bold mt-4 tracking-tight">Passwordless Management Sign-In</h2>
           <p className="text-xs text-slate-300 mt-1 leading-relaxed">
-            Per company policy, each new visit requires single-use email code verification before confidential operations are revealed.
+            No password required. Enter your registered email to receive a unique single-use code, then enter the code to unlock and access the system.
           </p>
         </div>
 
@@ -172,7 +172,7 @@ export function AuthModal({ onAuthenticated, tabToken }: AuthModalProps) {
                   </>
                 ) : (
                   <>
-                    <span>Send Verification Code</span>
+                    <span>Send Login Code</span>
                     <ArrowRight className="w-4 h-4" />
                   </>
                 )}
@@ -248,7 +248,7 @@ export function AuthModal({ onAuthenticated, tabToken }: AuthModalProps) {
                 ) : (
                   <>
                     <ShieldCheck className="w-4 h-4" />
-                    <span>Access Gashtyar Operations</span>
+                    <span>Verify Code & Open System</span>
                   </>
                 )}
               </button>
