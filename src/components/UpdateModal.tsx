@@ -130,7 +130,7 @@ export function UpdateModal({
       // Step 3 / Email Publishing: If user explicitly selected "Publish and Send Email Notification"
       if (sendEmail && onOpenNotificationModal) {
         onOpenNotificationModal({
-          subject: `[Update] ${title.trim()} ${version ? `(${version})` : ''}`,
+          subject: `${title.trim()}${version ? ` (${version.trim()})` : ''}`,
           summaryText: `${description.trim()}\n\nTechnical Changes:\n${technicalChanges.trim() || 'Internal improvements'}\n\nBusiness Benefit:\n${businessBenefit.trim() || 'Improves operations'}`,
           contentType: 'UPDATE',
           referenceId: data.id,

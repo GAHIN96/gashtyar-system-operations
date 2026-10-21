@@ -167,7 +167,7 @@ export async function POST(req: NextRequest) {
       const recipients: EmailRecipient[] = notificationPayload.recipients || [];
       if (recipients.length > 0) {
         await queueNotification({
-          subject: notificationPayload.subject || `[Update] ${title}`,
+          subject: notificationPayload.subject || title,
           summaryText: notificationPayload.summaryText || description,
           contentType: 'UPDATE',
           referenceId: updateId,

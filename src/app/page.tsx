@@ -426,7 +426,7 @@ export default function GashtyarITOperationsApp() {
             onNewUpdate={() => setUpdateModalOpen(true)}
             onSendNotificationForUpdate={(upd) => {
               openManualPushNotification({
-                subject: `[Update] ${upd.title} ${upd.version ? `(${upd.version})` : ''}`,
+                subject: `${upd.title}${upd.version ? ` (${upd.version.trim()})` : ''}`,
                 summaryText: `${upd.description}\n\nTechnical Changes:\n${upd.technical_changes || 'Internal modifications'}\n\nBusiness Benefit:\n${upd.business_benefit || 'Enhances operational efficiency'}`,
                 contentType: 'UPDATE',
                 referenceId: upd.id,

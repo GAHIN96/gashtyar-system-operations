@@ -356,8 +356,14 @@ export async function processQueueForNotification(notificationId: string, target
 
   for (const rec of recipientsRes.rows) {
     const attemptTime = nowUtc();
+    const rawSubject = (notif.subject as string) || '';
+    const cleanSubject = rawSubject
+      .replace(/^\[Gashtyar IT\]\s*/i, '')
+      .replace(/^\[Update\]\s*/i, '')
+      .trim() || rawSubject;
+
     const html = buildHtmlTemplate({
-      title: notif.subject as string,
+      title: cleanSubject,
       preheader: notif.summary_text as string,
       systemName: notif.system_name as string | undefined,
       statusBadge: notif.status_badge as string | undefined,
@@ -374,9 +380,9 @@ export async function processQueueForNotification(notificationId: string, target
         const info = await transporter.sendMail({
           from: config.from,
           to: rec.email as string,
-          subject: `[Gashtyar IT] ${notif.subject}`,
+          subject: cleanSubject,
           html,
-          text: `${notif.subject}\n\n${notif.summary_text}\n\nView details: ${secureActionUrl}`,
+          text: `${cleanSubject}\n\n${notif.summary_text}\n\nView details: ${secureActionUrl}`,
         });
 
         // Provider accepted the email
