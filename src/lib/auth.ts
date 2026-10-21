@@ -274,10 +274,13 @@ export async function validateSession(
     return { valid: false, error: 'Account has been deactivated. Please contact IT.' };
   }
 
-  // 2. Per-tab context check:
-  // Reopening in a new tab will have empty/different tabToken, requiring fresh verification
-  if (row.tab_token !== tabToken) {
-    return { valid: false, error: 'New tab or window requires fresh verification code.' };
+  // 2. Tab context synchronization:
+  // If session is valid and active, seamlessly sync the tab token
+  if (tabToken && row.tab_token !== tabToken) {
+    await db.execute({
+      sql: `UPDATE sessions SET tab_token = ? WHERE id = ?`,
+      args: [tabToken, row.id],
+    });
   }
 
   // 3. Absolute 8-hour limit check

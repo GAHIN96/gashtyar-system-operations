@@ -17,9 +17,10 @@ export async function getAuthenticatedUser(
   const tabToken =
     req.headers.get('x-tab-token') ||
     req.nextUrl.searchParams.get('tabToken') ||
-    req.cookies.get('gashtyar_tab_token')?.value;
+    req.cookies.get('gashtyar_tab_token')?.value ||
+    'tab_default';
 
-  if (!sessionCookie || !tabToken) {
+  if (!sessionCookie) {
     return {
       user: null,
       errorResponse: NextResponse.json(
