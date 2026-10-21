@@ -112,7 +112,7 @@ export function AuthModal({ onAuthenticated, tabToken }: AuthModalProps) {
       <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden animate-modal">
         {/* Modal Top Header */}
         <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-blue-950 p-6 text-white border-b-4 border-orange-600">
-          <GashtyarLogo subtitle="Internal IT Operations & Management" />
+          <GashtyarLogo subtitle="Internal IT Operations & Management" isDark={true} />
           <h2 className="text-xl font-bold mt-4 tracking-tight">Passwordless Management Sign-In</h2>
           <p className="text-xs text-slate-300 mt-1 leading-relaxed">
             No password required. Enter your registered email to receive a unique single-use code, then enter the code to unlock and access the system.

@@ -5,6 +5,7 @@ interface GashtyarLogoProps {
   size?: number;
   showText?: boolean;
   subtitle?: string;
+  isDark?: boolean;
 }
 
 export function GashtyarLogo({
@@ -12,6 +13,7 @@ export function GashtyarLogo({
   size = 40,
   showText = true,
   subtitle = 'IT Management & Operations Portal',
+  isDark = false,
 }: GashtyarLogoProps) {
   return (
     <div className={`flex items-center gap-3 ${className}`}>
@@ -27,11 +29,19 @@ export function GashtyarLogo({
 
       {showText && (
         <div className="flex flex-col justify-center">
-          <span className="text-lg font-black tracking-tight text-slate-900 leading-none">
+          <span
+            className={`text-lg font-black tracking-tight leading-none ${
+              isDark ? 'text-white' : 'text-slate-900'
+            }`}
+          >
             Gashtyar
           </span>
           {subtitle && (
-            <span className="text-[11px] font-semibold text-slate-500 leading-none mt-1">
+            <span
+              className={`text-[11px] font-semibold leading-none mt-1 ${
+                isDark ? 'text-slate-200' : 'text-slate-500'
+              }`}
+            >
               {subtitle}
             </span>
           )}
