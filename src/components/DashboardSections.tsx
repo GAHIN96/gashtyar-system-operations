@@ -43,7 +43,7 @@ export function DashboardSections({
 }: DashboardSectionsProps) {
   const percentOperational = metrics.totalSystems > 0
     ? Math.round((metrics.operationalSystems / metrics.totalSystems) * 100)
-    : 83;
+    : 100;
 
   return (
     <div className="space-y-6">
@@ -75,19 +75,37 @@ export function DashboardSections({
           </button>
         </div>
 
-        {/* 6-Column Grid of System Cards (Responsive from 1 to 6 columns) */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3.5">
-          {systems.map((sys) => (
-            <SystemCard
-              key={sys.id}
-              system={sys}
-              isAdmin={canManageSystems}
-              onViewDetails={onViewDetails}
-              onOpenComments={onOpenComments}
-              onEditSystem={onEditSystem}
-            />
-          ))}
-        </div>
+        {/* Systems Cards Grid or Empty State */}
+        {systems.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3.5">
+            {systems.map((sys) => (
+              <SystemCard
+                key={sys.id}
+                system={sys}
+                isAdmin={canManageSystems}
+                onViewDetails={onViewDetails}
+                onOpenComments={onOpenComments}
+                onEditSystem={onEditSystem}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="bg-white rounded-2xl p-8 border border-slate-200/90 text-center shadow-xs">
+            <LayoutGrid className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+            <h3 className="text-sm font-bold text-slate-800">No Systems Registered Yet</h3>
+            <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
+              System is ready for production. Add and monitor your company's live services and booking engines from scratch.
+            </p>
+            {canManageSystems && (
+              <button
+                onClick={() => onNavigateTab('systems')}
+                className="mt-3.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-colors cursor-pointer shadow-xs inline-flex items-center gap-1.5"
+              >
+                <span>+ Add First System</span>
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
       {/* ========================================================

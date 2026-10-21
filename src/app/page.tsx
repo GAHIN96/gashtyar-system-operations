@@ -342,21 +342,43 @@ export default function GashtyarITOperationsApp() {
               )}
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {filteredSystems.map((sys) => (
-                <SystemCard
-                  key={sys.id}
-                  system={sys}
-                  isAdmin={canManageSystems}
-                  onViewDetails={(s) => setSelectedDrawerSystem(s)}
-                  onOpenComments={(s) => setSelectedDrawerSystem(s)}
-                  onEditSystem={(s) => {
-                    setEditingSystem(s);
-                    setSystemEditModalOpen(true);
-                  }}
-                />
-              ))}
-            </div>
+            {filteredSystems.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                {filteredSystems.map((sys) => (
+                  <SystemCard
+                    key={sys.id}
+                    system={sys}
+                    isAdmin={canManageSystems}
+                    onViewDetails={(s) => setSelectedDrawerSystem(s)}
+                    onOpenComments={(s) => setSelectedDrawerSystem(s)}
+                    onEditSystem={(s) => {
+                      setEditingSystem(s);
+                      setSystemEditModalOpen(true);
+                    }}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="bg-white rounded-2xl p-12 border border-slate-200 text-center shadow-xs">
+                <Layers className="w-10 h-10 text-slate-300 mx-auto mb-2" />
+                <h3 className="text-base font-bold text-slate-800">No Systems Registered</h3>
+                <p className="text-xs text-slate-500 mt-1 max-w-md mx-auto">
+                  Ready from zero. Click "+ Add System" to begin monitoring your corporate infrastructure, booking portals, and servers.
+                </p>
+                {canManageSystems && (
+                  <button
+                    onClick={() => {
+                      setEditingSystem(null);
+                      setSystemEditModalOpen(true);
+                    }}
+                    className="mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-colors cursor-pointer inline-flex items-center gap-1.5 shadow-xs"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>Add First System</span>
+                  </button>
+                )}
+              </div>
+            )}
           </div>
         )}
 
