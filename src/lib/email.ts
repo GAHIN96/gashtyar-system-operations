@@ -41,7 +41,7 @@ export async function getSmtpConfig() {
   const port = parseInt(settings.smtp_port || process.env.SMTP_PORT || '587', 10);
   const user = settings.smtp_user || process.env.SMTP_USER;
   const pass = settings.smtp_pass || process.env.SMTP_PASS;
-  const from = settings.smtp_from || process.env.SMTP_FROM || 'Gashtyar IT Operations <it-ops@gashtyar.com>';
+  const from = settings.smtp_from || process.env.SMTP_FROM || 'Gashtyar IT Operations <it@monitor.gashtyartravel.com>';
   const secure = settings.smtp_secure === 'true' || port === 465;
 
   const isConfigured = Boolean(host && user && pass);
